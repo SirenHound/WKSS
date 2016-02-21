@@ -18,13 +18,7 @@
 (function(){
     "use strict";
 
-    document.addEventListener('readystatechange', function(){console.log(document.readyState);});
-    
-    if (document.readyState !== "loading"){
-console.log(document.readyState);
 
-    }
-    
     /*
      *  This script is licensed under the Creative Commons License
      *  "Attribution-NonCommercial 3.0 Unported"
@@ -40,17 +34,6 @@ console.log(document.readyState);
 
     var o = {};
     window.o = o;
-    /**
-    * o.extend - add members of one object to this object, overwriting conflicts
-    * @param {Object} - object to combine to this object
-    * @returns {Object} this
-    */
-    o.extend = function(obj){
-        for (var item in obj) if (obj.hasOwnProperty(item)){
-            this[item] = obj[item];
-        }
-        return this;
-    };
 
     o.VersionData = {
         v: "0.2.1",
@@ -58,60 +41,6 @@ console.log(document.readyState);
         propertyDesc: {meaning: "list of meanings", reading: "list of readings", kanji: "item prompt", i:"item index", components: "kanji found in word", date: "timestamp of new level", due: "timestamp of item's next review", locked: "indicator of whether components are eligible", manualLock: "latch for 'locked' so failing components don't re-lock the item"}
     };
 
-
-    // Making settings visible on page
-    o.extend({
-        locksOn: true, //Disable vocab locks (unlocked items persist until deleted)
-        lockDB: false, //Set to false to unlock Kanji is not available on WaniKani (ie. not returned by API)
-        reverse: false, //Include English to ひらがな reading reviews
-        asWK: false, //Push user reviews into the main WK review queue
-        APIkey: "YOUR_API_HERE"
-    });
-
-    o.setOptions = function(t,e){
-        return t.options = o.extend({}, t.options, e), t.options;
-    };
-
-    o.debugging = true;
-    /**
-    * conOps - Inserts css string and namespace prefix into argument list for use in console operations
-    * @param {ArgumentList} input - List of arguments to pass to function
-    * @param {String} css - css string to apply to first argument if it is a string
-    * @returns {ArgumentList} - new set of arguments to apply to console operation
-    */
-    var conOps = function(input, css){
-        var args = Array.prototype.slice.apply(input); 
-        typeof args[0] === "string"? args[0] = "WKSS+: " + (css ? "%c" : "") + args[0] : args.unshift("WKSS+:");
-        css && args.splice(1, 0, css);
-        return args;
-    };
-
-    //console functions info, warn, log, groupCollapsed, groupEnd, error
-    var info =           function(){var args = conOps(arguments, "color:blue;"); o.debugging&&console.info.apply(console, args);},
-        warn =           function(){var args = conOps(arguments);                o.debugging&&console.warn.apply(console, args);},
-        log =            function(){var args = conOps(arguments);                o.debugging&&console.log.apply(console, args);},
-        group =          function(){var args = conOps(arguments);                o.debugging&&console.group.apply(console, args);},
-        groupCollapsed = function(){var args = conOps(arguments);                o.debugging&&console.groupCollapsed.apply(console, args);},
-        groupEnd =       function(){var args = conOps(arguments);                o.debugging&&console.groupEnd.apply(console, args);},
-        error =          function(){var args = conOps(arguments);                o.debugging&&console.error.apply(console, args);};
-
-    //unless the user navigated from the review directory, they are unlikely to have unlocked any kanji
-    o.noNewStuff = /^https:\/\/.*\.wanikani\.com\/.*/.test(document.referrer)&&!(/https:\/\/.*\.wanikani\.com\/review.*/.test(document.referrer));
-    o.usingHTTPS = /^https:/.test(window.location.href);
-
-    var localGet = function(strName){
-        var strObj = localStorage.getItem(strName);
-    //    return parseString(strObj);
-          return $.jStorage.get(strName);
-
-    };
-
-    /**
-     * @param {String} APIkey - Users WaniKani API key (for setting)
-     * @requires {Function} localGet
-     * @requires {Function} localSet
-     * @returns {String} APIkey
-     */
 
     /*
      * L.Class powers the OOP facilities of the library.
@@ -240,13 +169,117 @@ console.log(document.readyState);
      */
 
 
+    // Making settings visible on page
+    o.extend({
+        locksOn: true, //Disable vocab locks (unlocked items persist until deleted)
+        lockDB: false, //Set to false to unlock Kanji is not available on WaniKani (ie. not returned by API)
+        reverse: false, //Include English to ひらがな reading reviews
+        asWK: false, //Push user reviews into the main WK review queue
+        APIkey: "YOUR_API_HERE"
+    });
+
+    o.setOptions = function(t,e){
+        return t.options = o.extend({}, t.options, e), t.options;
+    };
+
+    o.debugging = true;
+    /**
+    * conOps - Inserts css string and namespace prefix into argument list for use in console operations
+    * @param {ArgumentList} input - List of arguments to pass to function
+    * @param {String} css - css string to apply to first argument if it is a string
+    * @returns {ArgumentList} - new set of arguments to apply to console operation
+    */
+    var conOps = function(input, css){
+        var args = Array.prototype.slice.apply(input); 
+        typeof args[0] === "string"? args[0] = "WKSS+: " + (css ? "%c" : "") + args[0] : args.unshift("WKSS+:");
+        css && args.splice(1, 0, css);
+        return args;
+    };
+
+    //console functions info, warn, log, groupCollapsed, groupEnd, error
+    var info =           function(){var args = conOps(arguments, "color:blue;"); o.debugging&&console.info.apply(console, args);},
+        warn =           function(){var args = conOps(arguments);                o.debugging&&console.warn.apply(console, args);},
+        log =            function(){var args = conOps(arguments);                o.debugging&&console.log.apply(console, args);},
+        group =          function(){var args = conOps(arguments);                o.debugging&&console.group.apply(console, args);},
+        groupCollapsed = function(){var args = conOps(arguments);                o.debugging&&console.groupCollapsed.apply(console, args);},
+        groupEnd =       function(){var args = conOps(arguments);                o.debugging&&console.groupEnd.apply(console, args);},
+        error =          function(){var args = conOps(arguments);                o.debugging&&console.error.apply(console, args);};
+
+    //unless the user navigated from the review directory, they are unlikely to have unlocked any kanji
+    o.noNewStuff = /^https:\/\/.*\.wanikani\.com\/.*/.test(document.referrer)&&!(/https:\/\/.*\.wanikani\.com\/review.*/.test(document.referrer));
+    o.usingHTTPS = /^https:/.test(window.location.href);
+
+    var localGet = function(strName){
+        var strObj = localStorage.getItem(strName);
+        //    return parseString(strObj);
+        return $.jStorage.get(strName);
+
+    };
+
+    o.ApiUtils = {
+        getSetApi: function(APIkey){
+
+            var storedAPI = localGet('WaniKani-API');
+            if (!APIkey){
+                if (storedAPI !== null){
+                    APIkey = localGet('WaniKani-API');
+            info(APIkey);
+                }
+            }else{
+                //API has been provided for storage
+                if (storedAPI !== APIkey){
+                    localSet('WaniKani-API', APIkey);//overwrite with new API
+                }
+            }
+            info(APIkey);
+            return APIkey;
+        },
+
+        saveApiFromPage: function(){
+            $.get("https://www.wanikani.com/account",
+                  function(data){
+                var dom = new DOMParser().parseFromString(data, 'text/html');
+                var inputs = dom.getElementsByTagName("input");
+                for (var a = 0; a < inputs.length; a++){
+                    if (inputs[a].getAttribute("placeholder") === "Key has not been generated"){
+                        var api = inputs[a].getAttribute("value");
+                        o.ApiUtils.getSetApi(api);
+                    }
+                }  
+            });
+        },
+    };
+
+    o.users = {
+        current:{
+            apiKey: o.ApiUtils.getSetApi()
+        }
+    };
+
+    if (!o.users.current.apiKey){
+        info("populating api");
+        o.ApiUtils.saveApiFromPage(); //--
+    }
+    
+    /**
+     * @param {String} APIkey - Users WaniKani API key (for setting)
+     * @requires {Function} localGet
+     * @requires {Function} localSet
+     * @returns {String} APIkey
+     */
+
     o.Node = o.Class.extend({
         options:{},
         initialize: function(type, options){
-            o.setOptions(this, options);
+            
+            this.options = o.setOptions(this, options);
             //this.options = options;
             //o.extend(this.options, options);    
             this._container = document.createElement(type);
+            log("options", this.options);
+            this._defaultTextString = options && options.text || "";
+            this._textNode = document.createTextNode(this._defaultTextString);
+            this._childNodes = [];
         },
         setAttribute: function(attribute, dataString){
             this._container.setAttribute(attribute, dataString);
@@ -272,26 +305,26 @@ console.log(document.readyState);
             return this;
         },
         addNode:function(node){
-            log("adding node to this", node, this);
-            node instanceof o.Node && (node = node._container);
+            node instanceof o.Node && (this._childNodes.push(node), node = node._container);
             this._container.appendChild(node);
             return this;
         },
         addNodes:function(){
-            var node;
+            var node, textNode;
             for (var arg in arguments) if (arguments.hasOwnProperty(arg)){
-                arguments[arg] instanceof o.Node ? node = arguments[arg]._container : node = arguments[arg];
+                node = arguments[arg] instanceof o.Node ? (this._childNodes.push(arguments[arg]),arguments[arg]._container) : arguments[arg];
                 this._container.appendChild(node);
             }
             return this;
         },
-        setText: function(textString){
-            this._container.appendChild(document.createTextNode(textString));
+        resetText: function(){
+            this.setText(this._defaultTextString);
+            this._childNodes.forEach(function(n){n.resetText();});
             return this;
         },
         setId: function(idString){
             if (this._container){
-            this._container.id = idString;
+                this._container.id = idString;
             }else{
                 error("undefined???", this);
             }
@@ -310,6 +343,11 @@ console.log(document.readyState);
         },
         getContainer: function(){
             return this._container;
+        },
+        setText: function(textString){
+            this._textNode.nodeValue = textString;
+            this._container.appendChild(this._textNode);
+            return this;
         }
     });
 
@@ -344,34 +382,78 @@ console.log(document.readyState);
         $("#addKanji").removeClass("error");
         $("#addMeaning").removeClass("error");
     };
+    var handleExportClose = function () {
+        $("#export").hide();
+        $("#exportForm")[0].reset();
+        $("#exportArea").text("");
+        $("#exportStatus").text('Ready to export..');
+    };
+    var handleImportClose = function () {
+        $("#import").hide();
+        $("#importForm")[0].reset();
+        $("#importArea").text("");
+        $("#importStatus").text('Ready to import..');
+    };
+    var handleSelfstudyClose = function () {
+        $("#selfstudy").hide();
+        $("#rev-input").val("");
+        reviewActive = false;
+    };
+    var handleResultClose = function () {
+        $("#resultwindow").hide();
+        document.getElementById("stats-a").innerHTML = "";
+    };
 
     // add Window, standard 300 x 300
     o.Window = o.Class.extend({
 
         initialize: function(idString, options){
             idString && (this._id = "#" + idString);
-            this.closeButton = new o.Node("button").addjQueryHandlers({click: options.closeHandler}).setAttributes({type:"button", class:"wkss-close"}).addNode(new o.Node("i").addClass("icon-remove"));
-            
-    
+            info("handler?", {click: options.closeHandler||this.close});
+            this.closeButton = new o.Node("button").addjQueryHandlers({click: options.closeHandler || $.proxy(this.close, this)}).setAttributes({type:"button", class:"wkss-close"}).addNode(new o.Node("i").addClass("icon-remove"));
+
+
             this._windowIds = ["#add", "#export", "#import", "#edit", "#selfstudy", "#resultwindow"];
-            
+
             this._height = options.windowHeight;
             this._width = options.windowWidth;
-            this._elem = new o.Node("div").addStyles({height: options.windowHeight + "px", width: options.windowWidth + "px", marginLeft: -options.windowWidth/2 + "px"}).setId(idString).addClass("WKSS");
+            this._elem = new o.Node("div", {
+                text: options.text
+            })
+                .addStyles({height: options.windowHeight + "px", width: options.windowWidth + "px", marginLeft: -options.windowWidth/2 + "px"})
+                .setId(idString).addClass("WKSS");
             this._elem.addNodes(
-                new o.Node("button").addjQueryHandlers({click: options.closeHandler}).setAttributes({class:"wkss-close"}).addNode(new o.Node("i").addClass("icon-remove"))
+                this.closeButton
             );
             this._elem.addNodes.apply(this._elem, options.nodes);
             log("this._elem",this._elem);
 
             //$(this.closeButton._container).click(options.closeHandler);
-            
+
             info("Just created a window", this);
         },
 
-        
-        hide: function(){
-            $(this._elem).hide();
+        addTo: function(elem){
+            $(elem).append(this._elem._container);
+        },
+
+        close: function(){
+            info("hiding window", this);
+            //hide the window
+            $(this._elem._container).hide();
+            //clear all forms
+            Array.prototype.forEach.call(this._elem._container.getElementsByTagName("form"), function(form){false&&form.reset();});
+            //reset status to default
+            
+    
+      /*$("#addStatus").text('Ready to add..');
+        $("#addKanji").removeClass("error");
+        $("#addMeaning").removeClass("error");
+    
+        $("#exportForm")[0].reset();
+        $("#exportArea").text("");
+        $("#exportStatus").text('Ready to export..');
+    */
         },
 
         show: function(){
@@ -383,41 +465,52 @@ console.log(document.readyState);
                 }
             }
         }
-
     });
 
-//    var settingsWindow = new o.Window(undefined, {windowHeight:300, windowWidth:300});
-    
-    var addWindow = new o.Window("add", {closeHandler: handleAddClose, windowHeight:300, windowWidth:300,
+    var handleWindowClose = function(){
+        log("close me", this);
+    };
+
+    var settingsWindow = new o.Window("settings", {windowHeight:300, windowWidth:300,
+                                                   nodes:[
+                                                       new o.Node("h1").setText("User Settings"),
+                                                       new o.Node("label").setText("API key"),
+                                                       new o.Node("input").setAttributes({type: "text", placeholder: o.users.current.apiKey}).addStyles({width:"90%"})
+                                                   ]
+                                                  });
+log(settingsWindow);
+
+    var addWindow = new o.Window("add", {windowHeight:300, windowWidth:300,
                                          nodes:[
                                              new o.Node("form").setAttributes({id: "addForm"}).addNodes(
-                                                 new o.Node("h1").setText("Add a new Item"),
+                                                 new o.Node("h1", {text: "Add a new Item"}),
                                                  new o.Node("input").setAttributes({type: "text", id:"addKanji", placeholder:"Enter 漢字, ひらがな or カタカナ"}),
                                                  new o.Node("input").setAttributes({type: "text", id:"addReading", title: "Leave empty to add vocabulary like する (to do)", placeholder:"Enter reading"}),
                                                  new o.Node("input").setAttributes({type: "text", id:"addMeaning", placeholder:"Enter meaning"}),
-                                                 new o.Node("p").setAttributes({id:"addStatus"}).setText("Ready to add.."),
+                                                 new o.Node("p", {text: "Ready to add.."}).setAttributes({id: "addStatus"}).setText("Read.."),
                                                  new o.Node("button").setAttributes({id:"AddItemBtn", type:"button"}).setText("Add new Item")
                                              )]
                                         });
-        warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+    log("addWindow",addWindow);
+    warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
 
-var exportWindow = new o.Window("export", {windowHeight:275, windowWidth:390});
+    var exportWindow = new o.Window("export", {windowHeight:275, windowWidth:390});
 
 
-info("_container", exportWindow._elem._container,addWindow._elem, addWindow._elem._container.firstChild, exportWindow === addWindow);
-//var addWindowHeight = 300;
- //   var addWindowWidth = 300;
-        warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+    info("_container", exportWindow._elem._container,addWindow._elem, addWindow._elem._container.firstChild, exportWindow === addWindow);
+    //var addWindowHeight = 300;
+    //   var addWindowWidth = 300;
+    warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
 
     // export and import Window, standard 275 x 390
-info("importwindow._elem._coontainer",exportWindow._elem._container.firstChild, addWindow);
+    info("importwindow._elem._coontainer",exportWindow._elem._container.firstChild, addWindow);
 
-info("c",addWindow === exportWindow);
-var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
+    info("c",addWindow === exportWindow);
+    var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
     var exportImportWindowHeight = 275;
     var exportImportWindowWidth = 390;
-        warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
-        
+    warn("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+
     // edit Window, standard 380 x 800
     var editWindow = new o.Window("edit", {windowHeight:380, windowWidth:800});
     var editWindowHeight = 380;
@@ -438,7 +531,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
 
     o.SRS = o.Class.extend({
 
-    //srs 4h, 8h, 24h, 3d (guru), 1w, 2w (master), 1m (enlightened), 4m (burned)
+        //srs 4h, 8h, 24h, 3d (guru), 1w, 2w (master), 1m (enlightened), 4m (burned)
         levels: ["Started", "Apprentice", "Apprentice", "Apprentice", "Apprentice", "Guru", "Guru", "Master", "Enlightened", "Burned"],
 
         intervals: (function(){
@@ -482,7 +575,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
 
     //--------------Start Insert Into WK Review Functions--------------
     o.Reviews = o.Class.extend({
-        
+
         initialize: function(userVocab){
             this._userVocab = userVocab || localGet("User-Vocab")||[];
             this._wKSSItems = [];
@@ -491,7 +584,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
         },
 
         makeWkReviews: function(){
-            
+
             groupCollapsed("Loading Items");
             for (var i = 0, l = this._userVocab.length; i < l; i++){
                 var dueNow = (this._userVocab[i].locked === "no" && this._userVocab[i].level < 9 && Date.now() > this._userVocab[i].due);
@@ -513,12 +606,12 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
                 log("first item regardless of being added to queue:", this.wKSS_to_WK(this._userVocab[0]), JSON.stringify(wKSS_to_WK(this._userVocab[0])));
             }
             //where the magic happens
-               $.jStorage.listenKeyChange("reviewQueue", this._onReviewQueueChange);
+            $.jStorage.listenKeyChange("reviewQueue", this._onReviewQueueChange);
         },
 
         _onReviewQueueChange: function(evt){
             $.jStorage.stopListening("reviewQueue", this._onReviewQueueChange);
-            
+
             info("$.jStorage event listenKeyChange, evt->", evt, "this? ->", this);
             this.joinReviews();
         },
@@ -578,7 +671,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
                         var id = Number(settings.urlParams.WKSSid);
                         var Mw = Number(settings.urlParams.MeaningWrong);
                         var Rw = Number(settings.urlParams.ReadingWrong);
-                        
+
                         log("is this your card?", that._userVocab[id]);
                         if (that._userVocab[id].due < Date.now()){//double check that item was due for review
                             if (Mw||Rw){
@@ -678,7 +771,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
 
     o.Button = o.Class.extend({});
     o.AddButton = o.Button.extend({
-       _onClick: function(){
+        _onClick: function(){
 
             var kanji = $("#addKanji").val().toLowerCase();
             var reading = $("#addReading").val().toLowerCase().split(/[,、]+\s*/); //split at , or 、followed by 0 or any number of spaces
@@ -1025,7 +1118,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
         switch (true){
             case (milliseconds <= 0) :
                 return "Now" ;
-            
+
             case (milliseconds > 2628000000) : //About a month
                 num = Math.floor(milliseconds/2628000000).toString()+" month";
                 if (num !== "1 month"){
@@ -1439,7 +1532,7 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
         log(numReviews.toString() +" reviews created");
         if (numReviews > 0){
             var reviewString = (soonest !== undefined)? "<br/>\
-    More to come in "+ms2str(soonest):"";
+More to come in "+ms2str(soonest):"";
             document.getElementById('user-review').innerHTML = "Review (" + strReviews + ")" + reviewString;
         }
     };
@@ -1696,1405 +1789,1362 @@ var importWindow = new o.Window("import", {windowHeight:275, windowWidth:390});
         //localStorage.setItem(strName, obj);
         return $.jStorage.set(strName, obj);
     };
-    var getSetApi = function(APIkey){
+    
 
-        var storedAPI = localGet('WaniKani-API');
-        if (!APIkey){
-            if (storedAPI !== null){
-                APIkey = localGet('WaniKani-API');
-            }
+
+var sessionSet = function(strName, obj){
+    log(strName + " is of type " + typeof obj);
+    if (typeof obj === "object")
+        obj=JSON.stringify(obj);
+    sessionStorage.setItem(strName, obj);
+};
+
+var sessionGet = function(strName){
+    var strObj = sessionStorage.getItem(strName);
+    return parseString(strObj);
+};
+
+var parseString = function(strObj){
+    //avoids duplication of code for sesssionGet and localGet
+    var obj;
+    try {
+        obj = JSON.parse(strObj);
+        log("Variable is of type " + typeof obj);
+    }catch(e){
+        if (e.name === "SyntaxError"){
+            log(strObj + " is an ordinary string that cannot be parsed.");
+            obj = strObj;
         }else{
-            //API has been provided for storage
-            if (storedAPI !== APIkey){
-                localSet('WaniKani-API', APIkey);//overwrite with new API
-            }
+            console.error("Could not parse " + strObj + ". Error: ", e);
         }
-        return APIkey;
-    };
+    }
+    return obj;
 
-    o.saveApiFromPage = function(){
-        $.get("https://www.wanikani.com/account",
-              function(data){
-            var dom = new DOMParser().parseFromString(data, 'text/html');
-            var inputs = dom.getElementsByTagName("input");
-            for (var a = 0; a < inputs.length; a++){
-                if (inputs[a].getAttribute("placeholder") === "Key has not been generated"){
-                    var api = inputs[a].getAttribute("value");
-                    getSetApi(api);
-                }
-            }  
-        });
-    };
+};
 
-
-
-    var sessionSet = function(strName, obj){
-        log(strName + " is of type " + typeof obj);
-        if (typeof obj === "object")
-            obj=JSON.stringify(obj);
-        sessionStorage.setItem(strName, obj);
-    };
-
-    var sessionGet = function(strName){
-        var strObj = sessionStorage.getItem(strName);
-        return parseString(strObj);
-    };
-
-    var parseString = function(strObj){
-        //avoids duplication of code for sesssionGet and localGet
-        var obj;
-        try {
-            obj = JSON.parse(strObj);
-            log("Variable is of type " + typeof obj);
-        }catch(e){
-            if (e.name === "SyntaxError"){
-                log(strObj + " is an ordinary string that cannot be parsed.");
-                obj = strObj;
-            }else{
-                console.error("Could not parse " + strObj + ". Error: ", e);
-            }
+var unbracketSolution = function(solution){
+    //takes an arry of strings and returns the portions before left brackets
+    var unbracketed = [];
+    i = solution.length;
+    while(i--){
+        var openBracket = solution[i].indexOf("(");
+        if (openBracket !== -1){ //string contains a bracket
+            unbracketed.push(solution[i].toLowerCase().substr(0, openBracket));
         }
-        return obj;
+    }
+    return unbracketed;
+};
 
-    };
+var inputCorrect = function() {
 
-    var unbracketSolution = function(solution){
-        //takes an arry of strings and returns the portions before left brackets
-        var unbracketed = [];
-        i = solution.length;
-        while(i--){
-            var openBracket = solution[i].indexOf("(");
-            if (openBracket !== -1){ //string contains a bracket
-                unbracketed.push(solution[i].toLowerCase().substr(0, openBracket));
-            }
+    var input = $("#rev-input").val().toLowerCase().trim();
+    var solution = document.getElementById('rev-solution').innerHTML.split(/[,、]+\s*/);
+    var correctCharCount = 0;
+    var returnvalue = false;
+
+    log("Input: " + input);
+
+    var append = unbracketSolution(solution);
+    solution = solution.concat(append);
+    var i = solution.length;
+    while(i--){
+
+        var threshold = 0;//how many characters can be wrong
+        if(document.getElementById('rev-type').innerHTML == "Meaning") {
+            threshold = Math.floor(solution[i].length / errorAllowance);
         }
-        return unbracketed;
-    };
 
-    var inputCorrect = function() {
+        log("Checking " + solution[i] + " with threshold: " + threshold);
 
-        var input = $("#rev-input").val().toLowerCase().trim();
-        var solution = document.getElementById('rev-solution').innerHTML.split(/[,、]+\s*/);
-        var correctCharCount = 0;
-        var returnvalue = false;
-
-        log("Input: " + input);
-
-        var append = unbracketSolution(solution);
-        solution = solution.concat(append);
-        var i = solution.length;
-        while(i--){
-
-            var threshold = 0;//how many characters can be wrong
-            if(document.getElementById('rev-type').innerHTML == "Meaning") {
-                threshold = Math.floor(solution[i].length / errorAllowance);
-            }
-
-            log("Checking " + solution[i] + " with threshold: " + threshold);
-
-            var j;
-            var lengthDiff = Math.abs(input.length - solution[i].length);
-            if (lengthDiff > threshold){
-                returnvalue = returnvalue || false;
-                log("false at if branch " + input.length + " < " + JSON.stringify(solution[i]));//.length );//- threshold));
-            } else { //difference in response length is within threshold
-                j = input.length;
-                while (j--) {
-                    if (input[j] == solution[i][j]) {
-                        log (input[j] +" == "+ solution[i][j]);
-                        correctCharCount++;
-                    }
-                }
-                if (correctCharCount >= solution[i].length - threshold){
-                    returnvalue = true;
+        var j;
+        var lengthDiff = Math.abs(input.length - solution[i].length);
+        if (lengthDiff > threshold){
+            returnvalue = returnvalue || false;
+            log("false at if branch " + input.length + " < " + JSON.stringify(solution[i]));//.length );//- threshold));
+        } else { //difference in response length is within threshold
+            j = input.length;
+            while (j--) {
+                if (input[j] == solution[i][j]) {
+                    log (input[j] +" == "+ solution[i][j]);
+                    correctCharCount++;
                 }
             }
-
+            if (correctCharCount >= solution[i].length - threshold){
+                returnvalue = true;
+            }
         }
 
-        log("Returning " + returnvalue);
-        return returnvalue;
-    };
+    }
 
-    /*
+    log("Returning " + returnvalue);
+    return returnvalue;
+};
+
+/*
          *  Adds the Button
          */
 
 
 
-    o.CSS = o.Class.extend({
-        /**
+o.CSS = o.Class.extend({
+    /**
         * @param {String} classString - used for when outputting as style textNode
         */
-        initialize: function(classString, styleObject){
-            this._string = classString + " {";
-            this._object = {};
-            styleObject && this.addStyle(styleObject);
-        },
-        /**
+    initialize: function(classString, styleObject){
+        this._string = classString + " {";
+        this._object = {};
+        styleObject && this.addStyle(styleObject);
+    },
+    /**
         * @param {String} jsKey - style key in JavaScript format, eg. 'fontFamily'
         * @returns {String} - corresponding css key, eg.'font-family'
         */
-        JStoCSS: function(jsKey){
-            var cssKey;
-            var cap = /[ABCDEFGHIJKLMNOPQRSTUVWXYZ]/;
-            while (jsKey.search(cap) > -1){
-                jsKey = jsKey.replace(cap, "-" + jsKey[jsKey.search(cap)].toLowerCase());
-            }
-            return jsKey;
-        },
-        addStyle: function(styleObject){
-            this._object = o.extend(this._object, styleObject);
-            for (var k in styleObject) if (styleObject.hasOwnProperty(k)){
-                this._string += this.JStoCSS(k) + ": " + styleObject[k] + "; ";
-            }
-        },
-        getTextNode: function(){
-            return document.createTextNode(this._string + "}");
-        },
-        getObject: function(){
-            return this._object;
+    JStoCSS: function(jsKey){
+        var cssKey;
+        var cap = /[ABCDEFGHIJKLMNOPQRSTUVWXYZ]/;
+        while (jsKey.search(cap) > -1){
+            jsKey = jsKey.replace(cap, "-" + jsKey[jsKey.search(cap)].toLowerCase());
         }
-    });
+        return jsKey;
+    },
+    addStyle: function(styleObject){
+        this._object = o.extend(this._object, styleObject);
+        for (var k in styleObject) if (styleObject.hasOwnProperty(k)){
+            this._string += this.JStoCSS(k) + ": " + styleObject[k] + "; ";
+        }
+    },
+    getTextNode: function(){
+        return document.createTextNode(this._string + "}");
+    },
+    getObject: function(){
+        return this._object;
+    }
+});
 
 
-    var addUserVocabButton = function() {
-        log("addUserVocabButton()");
-        //Functions (indirect)
-        //    WKSS_add()
-        //    WKSS_edit()
-        //    WKSS_export()
-        //    WKSS_import()
-        //    WKSS_lock()
-        //    WKSS_review()
+var addUserVocabButton = function() {
+    log("addUserVocabButton()");
+    //Functions (indirect)
+    //    WKSS_add()
+    //    WKSS_edit()
+    //    WKSS_export()
+    //    WKSS_import()
+    //    WKSS_lock()
+    //    WKSS_review()
 
-        var nav = document.getElementsByClassName('nav');
-        log("generating review list because: initialising script and populating reviews");
+    var nav = document.getElementsByClassName('nav');
+    log("generating review list because: initialising script and populating reviews");
 
 
-        if (nav&&nav.length>2) {
+    if (nav&&nav.length>2) {
 
-            var dropdownMenu = new o.Node("li");
-           
-            dropdownMenu.addClass("dropdown custom").addNodes(
-                new o.Node("a").addClass("dropdown-toggle custom").setAttributes({"data-toggle": "dropdown", "href": "#", "onclick": "generateReviewList();"}).addNode(
-                    new o.Node("span").setAttribute("lang", "ja").setText("自習")
-                ).setText("Self-Study").addNode(
-                    new o.Node("i").addClass("icon-chevron-down")
-                ),
-                new o.Node("ul").addClass("dropdown-menu").setId("WKSS_dropdown").addNodes(
-                    new o.Node("li").addClass("nav-header").setText("Settings"),
-                    new o.Node("li").setText(o.APIkey),
-                    //new o.Node("li").addNode(new o.Node("a").addjQueryHandlers({click: $.proxy(settingsWindow.show, settingsWindow)}).setAttributes({"href": "#"}).setText("Change")),
-                    new o.Node("li").addClass("nav-header").setText("Customize"),
-                    new o.Node("li").addNode(new o.Node("a").setId("click").addjQueryHandlers({click: $.proxy(addWindow.show, addWindow)}).setAttributes({"href": "#"}).setText("Add")),
-                    new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_edit();"}).setText("Edit")),
-                    new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_export();"}).setText("Export")),
-                    new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_import();"}).setText("Import")),
-                    new o.Node("li").addClass("nav-header").setText("Learn"),
-                    new o.Node("li").addNode(new o.Node("a").setId("user-review").setAttributes({"href": "#", "onclick": "WKSS_review();"}).setText("Please Wait..."))
-                )
-            ).addTo(nav[2]);
-                     info("_co ntainer", addWindow._elem._container,addWindow._elem, addWindow._elem._container.firstChild);
+        var dropdownMenu = new o.Node("li");
 
-        }else{
+        dropdownMenu.addClass("dropdown custom").addNodes(
+            new o.Node("a").addClass("dropdown-toggle custom").setAttributes({"data-toggle": "dropdown", "href": "#", "onclick": "generateReviewList();"}).addNode(
+                new o.Node("span").setAttribute("lang", "ja").setText("自習")
+            ).setText("Self-Study").addNode(
+                new o.Node("i").addClass("icon-chevron-down")
+            ),
+            new o.Node("ul").addClass("dropdown-menu").setId("WKSS_dropdown").addNodes(
+                new o.Node("li").addClass("nav-header").setText("Settings"),
+                new o.Node("li").addNode(new o.Node("a").setId("click").addjQueryHandlers({click: $.proxy(settingsWindow.show, settingsWindow)}).setAttributes({"href": "#"}).setText("User Settings")),
+                //new o.Node("li").addNode(new o.Node("a").addjQueryHandlers({click: $.proxy(settingsWindow.show, settingsWindow)}).setAttributes({"href": "#"}).setText("Change")),
+                new o.Node("li").addClass("nav-header").setText("Customize"),
+                new o.Node("li").addNode(new o.Node("a").setId("click").addjQueryHandlers({click: $.proxy(addWindow.show, addWindow)}).setAttributes({"href": "#"}).setText("Add")),
+                new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_edit();"}).setText("Edit")),
+                new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_export();"}).setText("Export")),
+                new o.Node("li").addNode(new o.Node("a").setAttributes({"href": "#", "onclick": "WKSS_import();"}).setText("Import")),
+                new o.Node("li").addClass("nav-header").setText("Learn"),
+                new o.Node("li").addNode(new o.Node("a").setId("user-review").setAttributes({"href": "#", "onclick": "WKSS_review();"}).setText("Please Wait..."))
+            )
+        ).addTo(nav[2]);
+        info("_container", addWindow._elem._container,addWindow._elem, addWindow._elem._container.firstChild);
+
+    }else{
         //    console.error("could not find nav", nav);
-        }
-        console.log("addUserVocab");
-    };
+    }
+    console.log("addUserVocab");
+};
 
-    /**
+/**
     * Adds a <style> tag with properties for the extension, should get smaller as styles get baked into class definitions
     */
-    var appendStyle = function(){
-        new o.Node("style").addNodes(
-            new o.CSS(".custom .dropdown-menu", {backgroundColor: '#DBA901 !important'}).getTextNode(),
-            new o.CSS(".custom .dropdown-menu:after, .custom .dropdown-menu:before", {borderBottomColor: '#DBA901 !important'}).getTextNode(),
-            new o.CSS(".open .dropdown-toggle.custom", {backgroundColor: '#FFC400 !important'}).getTextNode(),
-            new o.CSS(".custom .dropdown-menu a:hover", {backgroundColor: '#A67F00 !important'}).getTextNode(),
-            new o.CSS(".custom:hover, .custom:focus", {color: '#FFC400 !important'}).getTextNode(),
-            new o.CSS(".custom:hover span, .custom:focus span", {borderColor: '#FFC400 !important'}).getTextNode(),
-            new o.CSS(".open .custom span", {borderColor: '#FFFFFF !important'}).getTextNode(),
-            new o.CSS(".open .custom", {color: '#FFFFFF !important'}).getTextNode(),
-            new o.CSS(".WKSS", {
-                position:'fixed',
-                zIndex: 2,
-                top: '125px',
-                left: '50%',
-                margin:'0px',
-                background: '#FFF',
-                padding: '5px',
-                font: '12px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
-                color: '#888',
-                textShadow: '1px 1px 1px #FFF',
-                border: '1px solid #DDD',
-                borderRadius: '5px',
-                WebkitBorderRadius: '5px',
-                MozBorderRadius: '5px',
-                boxShadow: '10px 10px 5px #888888'
-            }).getTextNode(),
-            new o.CSS(".WKSS h1", {
-                font: '25px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
-                paddingLeft: '5px',
-                display: 'block',
-                borderBottom: '1px solid #DADADA',
-                margin: '0px',
-                color: '#888'
-            }).getTextNode(),
-            new o.CSS(".WKSS h1>span", {
-                display: 'block',
-                fontSize: '11px'
-            }).getTextNode(),
-            new o.CSS(".WKSS label", {
-                display: 'block',
-                margin: '0px 0px 5px'
-            }).getTextNode(),
-            new o.CSS(".WKSS label>span", {
-                float: 'left',
-                width: '80px',
-                textAlign: 'right',
-                paddingRight: '10px',
-                marginTop: '10px',
-                color: '#333',
-                fontFamily: '\"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
-                fontWeight: 'bold'
-            }).getTextNode(),
-            new o.CSS(".WKSS input[type=\"text\"], .WKSS input[type=\"email\"], .WKSS textarea", {
-                border: '1px solid #CCC',
-                color: '#888',
-                height: '20px',
-                marginBottom: '16px',
-                marginRight: '6px',
-                marginTop: '2px',
-                outline: '0 none',
-                padding: '6px 12px',
-                width: '80%',
-                lineHeight: 'normal !important',
-                borderRadius: '4px',
-                WebkitBorderRadius: '4px',
-                MozBorderRadius: '4px',
-                font: 'normal 14px/14px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
-                WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
-                boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
-                MozBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)'
-            }).getTextNode(),
-            new o.CSS(".WKSS select", {
-                border: '1px solid #CCC',
-                color: '#888',
-                outline: '0 none',
-                padding: '6px 12px',
-                height: '160px !important',
-                width: '95%',
-                borderRadius: '4px',
-                WebkitBorderRadius: '4px',
-                MozBorderRadius: '4px',
-                font: 'normal 14px/14px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
-                WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
-                boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
-                MozBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
-                background: '#FFF url(\'down-arrow.png\') no-repeat right',
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                textIndent: '0.01px',
-                textOverflow: '\'\''
-            }).getTextNode(),
-            new o.CSS(".WKSS textarea", {height:'100px'}).getTextNode(),
-            new o.CSS(".WKSS button, .button", {
-                position: 'relative',
-                background: '#FFF',
-                border: '1px solid #CCC',
-                padding: '10px 25px 10px 25px',
-                color: '#333',
-                borderRadius: '4px',
-                display: 'inline !important'
-            }).getTextNode(),
-            new o.CSS(".WKSS button:disabled", {
-                backgroundColor: '#EBEBEB',
-                border: '1px solid #CCC',
-                padding: '10px 25px 10px 25px',
-                color: '#333',
-                borderRadius: '4px'
-            }).getTextNode(),
-            new o.CSS(".WKSS .button:hover, button:hover:enabled", {
-                color: '#333',
-                backgroundColor: '#EBEBEB',
-                borderColor: '#ADADAD'
-            }).getTextNode(),
-            new o.CSS(".WKSS button:hover:disabled", {cursor: 'default'}).getTextNode(),
-            new o.CSS(".error", {borderColor: '#F00 !important', color: '#F00 !important'}).getTextNode(),
-            new o.CSS(".caution", {borderColor: '#F90 !important', color: '#F90 !important'}).getTextNode(),
-            new o.CSS(".correct", {borderColor: '#0F0 !important', color: '#0F0 !important'}).getTextNode(),
-            new o.CSS(".info", {borderColor:'#696969 !important', color: '#696969 !important'}).getTextNode(),
-            new o.CSS(".rev-error", {
-                textShadow: 'none',
-                border: '1px solid #F00 !important',
-                borderRadius: '10px',
-                backgroundColor: '#F00',
-                padding: '4px',
-                margin: '4px',
-                color: '#FFFFFF',
-                font: 'normal 18px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif'
-            }).getTextNode(),
-            new o.CSS(".rev-correct", {
-                textShadow: 'none',
-                border: '1px solid #088A08 !important',
-                borderRadius: '10px',
-                backgroundColor: '#088A08',
-                padding: '4px',
-                margin: '4px',
-                color: '#FFFFFF',
-                font: 'normal 18px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif'
-            }).getTextNode(),
-            new o.CSS("#add", {
-          //      width: addWindowWidth + 'px',
-          //      height: addWindowHeight + 'px',
-          //      marginLeft: -addWindowWidth/2 + 'px'
-            }).getTextNode(),
-            new o.CSS("#export, #import", {
-                background: '#fff',
-                width: exportImportWindowWidth + 'px',
-                height: exportImportWindowHeight + 'px',
-                marginLeft: -exportImportWindowWidth/2 + 'px'
-            }).getTextNode(),
-            new o.CSS("#edit", {
-                width: editWindowWidth + 'px',
-                height: editWindowHeight + 'px',
-                marginLeft: -editWindowWidth/2 + 'px'
-            }).getTextNode(),
-            new o.CSS("#selfstudy", {
-                left: '50%',
-                width: studyWindowWidth + 'px',
-                height: 'auto',
-                marginLeft: -studyWindowWidth/2 + 'px'
-            }).getTextNode(),
-            new o.CSS("#resultwindow", {
-                left:'50%',
-                width: resultWindowWidth + 'px',
-                height: resultWindowHeight + 'px',
-                marginLeft: -resultWindowWidth/2 + 'px'
-            }).getTextNode(),
-            new o.CSS("#AudioButton", {
-                marginTop: '35px',
-                position: 'relative',
-                display: 'inline !important',
-                WebkitMarginBefore: '50px'
-            }).getTextNode(),
-            new o.CSS("button.wkss-close", {
-                float: 'right',
-                backgroundColor: '#ff4040',
-                color: '#fff',
-                padding: '0px',
-                height: '27px',
-                width: '27px'
-            }).getTextNode(),
-            new o.CSS(".wkss-close", {
-                float: 'right',
-                backgroundColor: '#ff4040',
-                color: '#fff',
-                padding: '0px',
-                height: '27px',
-                width: '27px'
-            }).getTextNode(),
-            new o.CSS("#wkss-kanji, #rev-kanji", {
-                textAlign: 'center !important',
-                fontSize: '50px !important',
-                backgroundColor: '#9400D3 !important',
-                color: '#FFFFFF !important',
-                borderRadius: '10px 10px 0px 0px'
-            }).getTextNode(),
-            new o.CSS("#wkss-solution, #rev-solution", {
-                textAlign: 'center !important',
-                fontSize: '30px !important',
-                color: '#FFFFFF',
-                padding: '2px'
-            }).getTextNode(),
-            new o.CSS("#wkss-type", {
-                textAlign: 'center !important',
-                fontSize: '24px !important',
-                backgroundColor: '#696969',
-                color: '#FFFFFF !important',
-                borderRadius: '0px 0px 10px 10px'
-            }).getTextNode(),
-            new o.CSS("#rev-type", {
-                textAlign: 'center !important',
-                fontSize: '24px !important',
-                color: '#FFFFFF !important',
-                borderRadius: '0px 0px 10px 10px'
-            }).getTextNode(),
-            new o.CSS("#wkss-input", {
-                textAlign: 'center !important',
-                fontSize: '40px !important',
-                height: '80px !important',
-                lineHeight: 'normal !important'
-            }).getTextNode(),
-            new o.CSS("#rev-input", {
-                textAlign: 'center !important',
-                fontSize: '40px !important',
-                height: '60px !important',
-                lineHeight: 'normal !important'
-            }).getTextNode()
-        ).addTo(document.head);
-    };
+var appendStyle = function(){
+    new o.Node("style").addNodes(
+        new o.CSS(".custom .dropdown-menu", {backgroundColor: '#DBA901 !important'}).getTextNode(),
+        new o.CSS(".custom .dropdown-menu:after, .custom .dropdown-menu:before", {borderBottomColor: '#DBA901 !important'}).getTextNode(),
+        new o.CSS(".open .dropdown-toggle.custom", {backgroundColor: '#FFC400 !important'}).getTextNode(),
+        new o.CSS(".custom .dropdown-menu a:hover", {backgroundColor: '#A67F00 !important'}).getTextNode(),
+        new o.CSS(".custom:hover, .custom:focus", {color: '#FFC400 !important'}).getTextNode(),
+        new o.CSS(".custom:hover span, .custom:focus span", {borderColor: '#FFC400 !important'}).getTextNode(),
+        new o.CSS(".open .custom span", {borderColor: '#FFFFFF !important'}).getTextNode(),
+        new o.CSS(".open .custom", {color: '#FFFFFF !important'}).getTextNode(),
+        new o.CSS(".WKSS", {
+            position:'fixed',
+            zIndex: 2,
+            top: '125px',
+            left: '50%',
+            margin:'0px',
+            background: '#FFF',
+            padding: '5px',
+            font: '12px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
+            color: '#888',
+            textShadow: '1px 1px 1px #FFF',
+            border: '1px solid #DDD',
+            borderRadius: '5px',
+            WebkitBorderRadius: '5px',
+            MozBorderRadius: '5px',
+            boxShadow: '10px 10px 5px #888888'
+        }).getTextNode(),
+        new o.CSS(".WKSS h1", {
+            font: '25px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
+            paddingLeft: '5px',
+            display: 'block',
+            borderBottom: '1px solid #DADADA',
+            margin: '0px',
+            color: '#888'
+        }).getTextNode(),
+        new o.CSS(".WKSS h1>span", {
+            display: 'block',
+            fontSize: '11px'
+        }).getTextNode(),
+        new o.CSS(".WKSS label", {
+            display: 'block',
+            margin: '0px 0px 5px'
+        }).getTextNode(),
+        new o.CSS(".WKSS label>span", {
+            float: 'left',
+            width: '80px',
+            textAlign: 'right',
+            paddingRight: '10px',
+            marginTop: '10px',
+            color: '#333',
+            fontFamily: '\"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
+            fontWeight: 'bold'
+        }).getTextNode(),
+        new o.CSS(".WKSS input[type=\"text\"], .WKSS input[type=\"email\"], .WKSS textarea", {
+            border: '1px solid #CCC',
+            color: '#888',
+            height: '20px',
+            marginBottom: '16px',
+            marginRight: '6px',
+            marginTop: '2px',
+            outline: '0 none',
+            padding: '6px 12px',
+            width: '80%',
+            lineHeight: 'normal !important',
+            borderRadius: '4px',
+            WebkitBorderRadius: '4px',
+            MozBorderRadius: '4px',
+            font: 'normal 14px/14px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
+            WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+            boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+            MozBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)'
+        }).getTextNode(),
+        new o.CSS(".WKSS select", {
+            border: '1px solid #CCC',
+            color: '#888',
+            outline: '0 none',
+            padding: '6px 12px',
+            height: '160px !important',
+            width: '95%',
+            borderRadius: '4px',
+            WebkitBorderRadius: '4px',
+            MozBorderRadius: '4px',
+            font: 'normal 14px/14px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif',
+            WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+            boxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+            MozBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',
+            background: '#FFF url(\'down-arrow.png\') no-repeat right',
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            textIndent: '0.01px',
+            textOverflow: '\'\''
+        }).getTextNode(),
+        new o.CSS(".WKSS textarea", {height:'100px'}).getTextNode(),
+        new o.CSS(".WKSS button, .button", {
+            position: 'relative',
+            background: '#FFF',
+            border: '1px solid #CCC',
+            padding: '10px 25px 10px 25px',
+            color: '#333',
+            borderRadius: '4px',
+            display: 'inline !important'
+        }).getTextNode(),
+        new o.CSS(".WKSS button:disabled", {
+            backgroundColor: '#EBEBEB',
+            border: '1px solid #CCC',
+            padding: '10px 25px 10px 25px',
+            color: '#333',
+            borderRadius: '4px'
+        }).getTextNode(),
+        new o.CSS(".WKSS .button:hover, button:hover:enabled", {
+            color: '#333',
+            backgroundColor: '#EBEBEB',
+            borderColor: '#ADADAD'
+        }).getTextNode(),
+        new o.CSS(".WKSS button:hover:disabled", {cursor: 'default'}).getTextNode(),
+        new o.CSS(".error", {borderColor: '#F00 !important', color: '#F00 !important'}).getTextNode(),
+        new o.CSS(".caution", {borderColor: '#F90 !important', color: '#F90 !important'}).getTextNode(),
+        new o.CSS(".correct", {borderColor: '#0F0 !important', color: '#0F0 !important'}).getTextNode(),
+        new o.CSS(".info", {borderColor:'#696969 !important', color: '#696969 !important'}).getTextNode(),
+        new o.CSS(".rev-error", {
+            textShadow: 'none',
+            border: '1px solid #F00 !important',
+            borderRadius: '10px',
+            backgroundColor: '#F00',
+            padding: '4px',
+            margin: '4px',
+            color: '#FFFFFF',
+            font: 'normal 18px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif'
+        }).getTextNode(),
+        new o.CSS(".rev-correct", {
+            textShadow: 'none',
+            border: '1px solid #088A08 !important',
+            borderRadius: '10px',
+            backgroundColor: '#088A08',
+            padding: '4px',
+            margin: '4px',
+            color: '#FFFFFF',
+            font: 'normal 18px \"ヒラギノ角ゴ Pro W3\", \"Hiragino Kaku Gothic Pro\",Osaka, \"メイリオ\", Meiryo, \"ＭＳ Ｐゴシック\", \"MS PGothic\", sans-serif'
+        }).getTextNode(),
+        new o.CSS("#add", {
+            //      width: addWindowWidth + 'px',
+            //      height: addWindowHeight + 'px',
+            //      marginLeft: -addWindowWidth/2 + 'px'
+        }).getTextNode(),
+        new o.CSS("#export, #import", {
+            background: '#fff',
+            width: exportImportWindowWidth + 'px',
+            height: exportImportWindowHeight + 'px',
+            marginLeft: -exportImportWindowWidth/2 + 'px'
+        }).getTextNode(),
+        new o.CSS("#edit", {
+            width: editWindowWidth + 'px',
+            height: editWindowHeight + 'px',
+            marginLeft: -editWindowWidth/2 + 'px'
+        }).getTextNode(),
+        new o.CSS("#selfstudy", {
+            left: '50%',
+            width: studyWindowWidth + 'px',
+            height: 'auto',
+            marginLeft: -studyWindowWidth/2 + 'px'
+        }).getTextNode(),
+        new o.CSS("#resultwindow", {
+            left:'50%',
+            width: resultWindowWidth + 'px',
+            height: resultWindowHeight + 'px',
+            marginLeft: -resultWindowWidth/2 + 'px'
+        }).getTextNode(),
+        new o.CSS("#AudioButton", {
+            marginTop: '35px',
+            position: 'relative',
+            display: 'inline !important',
+            WebkitMarginBefore: '50px'
+        }).getTextNode(),
+        new o.CSS("button.wkss-close", {
+            float: 'right',
+            backgroundColor: '#ff4040',
+            color: '#fff',
+            padding: '0px',
+            height: '27px',
+            width: '27px'
+        }).getTextNode(),
+        new o.CSS(".wkss-close", {
+            float: 'right',
+            backgroundColor: '#ff4040',
+            color: '#fff',
+            padding: '0px',
+            height: '27px',
+            width: '27px'
+        }).getTextNode(),
+        new o.CSS("#wkss-kanji, #rev-kanji", {
+            textAlign: 'center !important',
+            fontSize: '50px !important',
+            backgroundColor: '#9400D3 !important',
+            color: '#FFFFFF !important',
+            borderRadius: '10px 10px 0px 0px'
+        }).getTextNode(),
+        new o.CSS("#wkss-solution, #rev-solution", {
+            textAlign: 'center !important',
+            fontSize: '30px !important',
+            color: '#FFFFFF',
+            padding: '2px'
+        }).getTextNode(),
+        new o.CSS("#wkss-type", {
+            textAlign: 'center !important',
+            fontSize: '24px !important',
+            backgroundColor: '#696969',
+            color: '#FFFFFF !important',
+            borderRadius: '0px 0px 10px 10px'
+        }).getTextNode(),
+        new o.CSS("#rev-type", {
+            textAlign: 'center !important',
+            fontSize: '24px !important',
+            color: '#FFFFFF !important',
+            borderRadius: '0px 0px 10px 10px'
+        }).getTextNode(),
+        new o.CSS("#wkss-input", {
+            textAlign: 'center !important',
+            fontSize: '40px !important',
+            height: '80px !important',
+            lineHeight: 'normal !important'
+        }).getTextNode(),
+        new o.CSS("#rev-input", {
+            textAlign: 'center !important',
+            fontSize: '40px !important',
+            height: '60px !important',
+            lineHeight: 'normal !important'
+        }).getTextNode()
+    ).addTo(document.head);
+};
 
-    /*
+/*
          *  Prepares the script
          */
-    var scriptInit = function() {
-        log("Initializing Wanikani UserVocab Script!");
+var scriptInit = function() {
+    log("Initializing Wanikani UserVocab Script!");
 
-        appendStyle();
+    appendStyle();
 
-        // Set up buttons
-        try {
-            if (typeof localStorage !== "undefined") {
-                addUserVocabButton();
-            }
-            else{
-                error("No localStorage");
-            }
+    // Set up buttons
+    try {
+        if (typeof localStorage !== "undefined") {
+            addUserVocabButton();
         }
-        catch (err) {
-                error(err);
+        else{
+            error("No localStorage");
         }
-    };
+    }
+    catch (err) {
+        error(err);
+    }
+};
 
-    /*
+/*
          * Helper Functions/Variables
          */
 
 
-    var isEmpty = function(value) {
-        return (typeof value === "undefined" || value === null);
-    };
+var isEmpty = function(value) {
+    return (typeof value === "undefined" || value === null);
+};
 
-    var select_all = function(str) {
-        var text_val = document.getElementById(str);
-        log(text_val);
-        text_val.focus();
-        text_val.select();
-    };
+var select_all = function(str) {
+    var text_val = document.getElementById(str);
+    log(text_val);
+    text_val.focus();
+    text_val.select();
+};
 
-    var checkAdd = function(add) {
-        //take a JSON object (parsed from import window) and check with stored items for any duplicates
-        // Returns true if each item in 'add' array is valid and
-        //at least one of them already exists in storage
-        var i = add.length;
-        if(localGet('User-Vocab')) {
-            var vocabList = getVocList();
-            while(i--){
-                if (isItemValid(add[i]) &&
-                    checkForDuplicates(vocabList,add[i]))
-                    return true;
-            }
-        }
-        return false;
-    };
-
-
-    var isItemValid = function(add) {
-        //validates an object representing vocab
-        return (!isEmpty(add.kanji) && //kanji property exists
-                !isEmpty(add.meaning) && //meaning property exists
-                !isEmpty(add.reading)&& //reading property exists
-                Object.prototype.toString.call(add.meaning) === '[object Array]'&&//meaning is an array
-                Object.prototype.toString.call(add.reading) === '[object Array]');//reading is an array
-    };
-
-
-
-    //*****Ethan's Functions*****
-    var handleReadyStateFour = function(xhrk, requestedItem){
-
-        var localkanjiList = [];
-        log("readystate: "+ xhrk.readyState);
-        var resp = JSON.parse(xhrk.responseText);
-        log("about to loop through requested information");
-        var i;
-        if (resp.requested_information)
-            i=resp.requested_information.length||0;
-        if (requestedItem === "kanji"){
-            while(i--){
-                //push response onto kanjilist variable
-                if (resp.requested_information[i].user_specific !== null){
-                    localkanjiList.push({"character": resp.requested_information[i].character,
-                                         "srs": resp.requested_information[i].user_specific.srs,
-                                         "reading": resp.requested_information[i][resp.requested_information[i].important_reading].split(",")[0],
-                                         "meaning": resp.requested_information[i].meaning.split(",")[0]
-                                        });
-                }else{
-                    localkanjiList.push({"character": resp.requested_information[i].character,
-                                         "srs": "unreached"});
-                }
-            }
-        }else if(requestedItem === "vocabulary"){
-            while(i--){
-                //push response onto kanjilist variable
-                if (resp.requested_information[i].user_specific !== null||true){
-                    //build vocablist
-                    localkanjiList.push({"kanji": resp.requested_information[i].character,
-                                         "reading": resp.requested_information[i].kana.split(","),
-                                         "meaning": resp.requested_information[i].meaning.split(",")});
-                }
-            }
-        }
-        //return kanjiList
-        //  log("Server responded with new kanjiList: \n"+JSON.stringify(kanjiList));
-        return localkanjiList;
-
-    };
-
-    var dummyResponse = function () {
-        var kanjiList = [];
-        log("creating dummy response");
-        kanjiList.push({"character": "猫", "srs": "noServerResp"});
-        var SRS = "apprentice"; //prompt("enter SRS for 子", "guru");
-        kanjiList.push({"character": "子", "srs": SRS});
-        kanjiList.push({"character": "品", "srs": "guru"});
-        kanjiList.push({"character": "供", "srs": "guru"});
-        kanjiList.push({"character": "本", "srs": "guru"});
-        kanjiList.push({"character": "聞", "srs": "apprentice"});
-        kanjiList.push({"character": "人", "srs": "enlightened"});
-        kanjiList.push({"character": "楽", "srs": "burned"});
-        kanjiList.push({"character": "相", "srs": "guru"});
-        kanjiList.push({"character": "卒", "srs": "noMatchWK"});
-        kanjiList.push({"character": "無", "srs": "noMatchGuppy"});
-
-        log("Server responded with dummy kanjiList: \n"+JSON.stringify(kanjiList));
-
-        localSet('User-KanjiList', kanjiList);
-
-        //update locks in localStorage
-        refreshLocks();
-
-
-    };
-        info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
-
-    var getServerResp = function(APIkey, requestedItem){
-    info(APIkey);
-        requestedItem = requestedItem ? requestedItem : 'kanji';
-
-        //functions:
-        //    refreshLocks()
-        //    generateReviewList()
-
-        if (APIkey !== "test"){
-            var levels = (requestedItem ==="kanji")? "/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50":
-            "/1,2,3,4,5,6,7,8,9,10";
-            var xhrk = createCORSRequest("get", "https://www.wanikani.com/api/user/" + APIkey + "/" + requestedItem + levels);
-
-
-            if (!isEmpty(xhrk)){
-
-                xhrk.onreadystatechange = function() {
-                    if (xhrk.readyState == 4){
-
-                        var kanjiList = handleReadyStateFour(xhrk,requestedItem);
-
-                        if (requestedItem === 'kanji'){
-                            localSet('User-KanjiList', kanjiList);
-                            log("kanjiList from server", kanjiList);
-                            //update locks in localStorage
-                            //pass kanjilist into this function
-                            //(don't shift things through storage unecessarily)
-                            refreshLocks();
-                        }else{
-                            var v = kanjiList.length;
-                            log(v + " items found, attempting to import");
-                            while (v--){
-                                setVocItem(kanjiList[v]);
-                            }
-                        }
-                        //------
-                    }
-                };
-
-                xhrk.send();
-                log("below");
-            }
-        } else {
-            //dummy server response for testing.
-            setTimeout(dummyResponse, 10000);
-        }
-    };
-
-    var getComponents = function(kanji){
-        log("getComponents(kanji)");
-        //functions:
-        //    none
-
-        //takes in a string and returns an array containing only the kanji characters in the string.
-        var components = [];
-
-        for (var c = 0; c < kanji.length; c++){
-            if(/^[\u4e00-\u9faf]+$/.test(kanji[c])) {
-                components.push(kanji[c]);
-            }
-        }
-        return components;
-    };
-
-    var refreshLocks = function(){
-        //functions:
-        //    setLocks(srsitem)
-
-        //log("refreshLocks()");
-        if (localGet('User-Vocab')) {
-
-            var vocList = getSrsList();
-            var i = vocList.length;
-            var srsList2 = JSON.parse(localGet('User-Vocab'));
-            console.groupCollapsed("Setting Locks");
-            while(i--){
-                log("vocList[i] = setLocks(vocList[i]);");
-                vocList[i] = setLocks(vocList[i]);
-                log("setSrsItem(srsList[i]);");
-                //Pull out list (whole thing)
-
-                srsList2 = setSrsItem(vocList[i],srsList2);
-
-            }
-            console.groupEnd();
-            localSet('User-Vocab', srsList2);
-            //      log("Setting new locks: "+JSON.stringify(srsList));
-        }else{
-            log("no srs storage found");
-        }
-    };
-
-    var getCompKanji = function(item, kanjiList){
-        if (!kanjiList){
-            kanjiList = [];
-        }
-        log("getCompKanji(item, kanjiList)");
-
-        var compSRS = [];
-        var kanjiReady = false; //indicates if the kanjiList has been populated
-        var userGuppy = false; //indicates if kanjiList has less than 100 items
-        var kanjiObj = {};
-
-        //has the server responded yet
-        if (kanjiList.length > 0){
-            log("kanjiList is > 0");
-            kanjiReady = true;
-
-            //create lookup object
-            for (var k=0;k<kanjiList.length;k++){
-                kanjiObj[kanjiList[k].character] = kanjiList[k];
-            }
-
-            //is there less than 100 kanji in the response
-            if (kanjiList.length < 100){
-                log("kanjiList is < 100");
-                userGuppy = true;
-            }
-        }
-
-        var components = item.components;
-        //for each kanji character component
-        //    this is the outer loop since there will be far less of them than kanjiList
-        for(var i = 0; i < components.length; i++){
-
-            var matched = false;
-            //for each kanji returned by the server
-            // for(var j=0; j<kanjiList.length; j++){
-
-            //if the kanji returned by the server matches the character in the item
-            if (typeof kanjiObj[components[i]] !== 'undefined'){
-                //      if (kanjiList[j].character == components[i]){
-                compSRS[i] = {"kanji": components[i], "srs": kanjiObj[components[i]].srs};
-                matched = true;
-
-                // break; //kanji found: 'i' is its position in item components; 'j' is its postion in the 'kanjiList' server response
-            }
-            //}
-
-            if (matched === false){ // character got all the way through kanjiList without a match.
-                if (kanjiReady){ //was there a server response?
-                    if (userGuppy){ //is the user a guppy (kanji probably matches a turtles response)
-                        log("matched=false, kanjiList.length: "+kanjiList.length);
-                        compSRS[i] = {"kanji": components[i], "srs": "noMatchGuppy"};
-                    }else{ //user is a turtle, kanji must not have been added to WK (yet)
-                        log("matched=false, kanjiList.length: "+kanjiList.length);
-                        compSRS[i] = {"kanji": components[i], "srs": "noMatchWK"};
-                    }
-                }else{
-                    log("matched=false, kanjiReady=false, noServerResp");
-                    compSRS[i] = {"kanji": components[i], "srs": "noServerResp"};
-                }
-            }
-        }
-        return compSRS; // compSRS is an array of the kanji with SRS values for each kanji component.
-        // eg. 折り紙:
-        // compSRS = [{"kanji": "折", "srs": "guru"}, {"kanji": "紙", "srs": "apprentice"}]
-    };
-
-    var createCORSRequest = function(method, url){
-        var xhr = new XMLHttpRequest();
-        if ("withCredentials" in xhr){
-            xhr.open(method, url, true);
-        } else if (typeof XDomainRequest !== "undefined"){
-            xhr = new XDomainRequest();
-            xhr.open(method, url);
-        } else {
-            xhr = null;
-        }
-        return xhr;
-    };
-
-    var createCSV = function(JSONstring){
-        var JSONobject = (typeof JSONstring === 'string') ? JSON.parse(JSONstring) : JSONstring;
-        var key;
-        var CSVarray = [];
-        var header = [];
-        var id = JSONobject.length;
-        if (id){//object not empty
-            for (key in JSONobject[0]){
-                if (JSONobject[0].hasOwnProperty(key)){
-                    header.push(key);
-                }
-            }
-        }
-        CSVarray.push(header.join(','));
-
-        while(id--){
-            var line = [];
-            var h = header.length;
-            while(h--){// only do keys in header, in the header's order. //JSONobject[id]){
-                key = header[h];
-                if(JSONobject[id][key] !== undefined){
-                    if (Array.isArray(JSONobject[id][key])){
-                        //parse array here
-                        line.push(JSONobject[id][key].join("\t"));
-                    }else{
-                        line.push(JSONobject[id][key]);
-                    }
-                }
-            }line = line.reverse();
-            CSVarray.push(line.join(','));
-        }
-        var CSVstring = CSVarray.join("\r\n");
-
-        return encodeURI("data:text/csv;charset=utf-8," + CSVstring);
-    };
-
-    var handleResetLevelsClick = function () {
-        //var srslist = getSrsList();
-        var srsList = JSON.parse(localGet('User-Vocab'))||[];
-
-        if (srsList) {
-            var i = srsList.length;
-            while(i--){
-                srsList[i].level = 0;
-                log("srsList[i].i before: "+srsList[i].i);
-                srsList[i].i=i;
-                log("srsList[i].i after: "+srsList[i].i);
-                var srsList2 = localGet('User-Vocab')||[];
-
-                srsList2 = setSrsItem(srsList[i],srsList2);
-                localSet('User-Vocab', srsList2);
-
-            }
-        }
-    };
-
-    //html strings
-    var editWindowHtml = "                                                          \
-    <div id=\"edit\" class=\"WKSS\">                                               \
-    <form id=\"editForm\">                                                                    \
-    <button id=\"EditCloseBtn\" class=\"wkss-close\" type=\"button\"><i class=\"icon-remove\"></i></button>\
-    <h1>Edit your Vocab</h1>                                                \
-    <select id=\"editWindow\" size=\"8\"></select>\
-    <input type=\"text\" id=\"editItem\" name=\"\" size=\"40\" placeholder=\"Select vocab, click edit, change and save!\">\
-    \
-    <p id=\"editStatus\">Ready to edit..</p>\
-    <button id=\"EditEditBtn\" type=\"button\">Edit</button>\
-    <button id=\"EditSaveBtn\" type=\"button\">Save</button>         \
-    <button id=\"EditDeleteBtn\" type=\"button\" title=\"Delete selected item\">Delete</button>         \
-    <button id=\"EditDeleteAllBtn\" type=\"button\" title=\"本当にやるの？\">Delete All</button>   \
-    <button id=\"ResetLevelsBtn\" type=\"button\">Reset levels</button>         \
-    </form>                                                                   \
-    </div>";
-    var exportWindowHtml = '                                                          \
-    <div id="export" class="WKSS">                                               \
-    <form id="exportForm">                                                                    \
-    <button id="ExportCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
-    <h1>Export Items</h1>                                                \
-    <textarea cols="50" rows="18" id="exportArea" placeholder="Export your stuff! Sharing is caring ;)"></textarea>                           \
-    \
-    <p id="exportStatus">Ready to export..</p>                                        \
-    <button id="ExportItemsBtn" type="button">Export Items</button>\
-    <button id="ExportSelectAllBtn" type="button">Select All</button>\
-    <button id="ExportCsvBtn" type="button">Export CSV</button>\
-    </form>                                                                   \
-    </div>';
-    var importWindowHtml = '                                                          \
-    <div id="import" class="WKSS">                                               \
-    <form id="importForm">                                                                    \
-    <button id="ImportCloseBtn" class="wkss-close" type="reset"><i class="icon-remove"></i></button>\
-    <h1>Import Items</h1>\
-    <textarea cols="50" rows="18" id="importArea" placeholder="Paste your stuff and hit the import button! Use with caution!"></textarea>                     \
-    \
-    <p id="importStatus">Ready to import..</p>                                        \
-    <label class="button" id="ImportItemsBtn" style="display:inline;">Import Items</label>\
-    <label id="ImportCsvBtn" class="button" style="display:inline;cursor: pointer;">Import CSV         \
-    <input type="file" id="upload" accept=".csv,.tsv" style="height:0px;width:0px;background:red;opacity:0;filter:opacity(1);" />\
-    </label>\
-    <label class="button" id="ImportWKBtn" style="display:inline;"><i class="icon-download-alt"></i> WK</label>\
-    </form>                                                                   \
-    </div>';
-    var reviewWindowHtml = '                                                          \
-    <div id="selfstudy" class="WKSS">\
-    <button id="SelfstudyCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
-    <h1>Review<span id="RevNum"></span></h1>\
-    <div id="wkss-kanji">\
-    <span id="rev-kanji"></span>\
-    </div><div id="wkss-type">\
-    <span id="rev-type"></span><br />\
-    </div><div id="wkss-solution">\
-    <span id="rev-solution"></span>\
-    </div><div id="wkss-input">\
-    <input type="text" id="rev-input" size="40" placeholder="">\
-    </div><span id="rev-index" style="display: block;"></span>\
-    \
-    <form id="audio-form">\
-    <label id="AudioButton" class="button">Play audio</label>\
-    <label id="WrapUpBtn"   class="button">Wrap Up</label>\
-    </form>\
-    <div id="rev-audio" style="display:none;"></div>\
-    </div>';
-    var resultWindowHtml = '                                                          \
-    <div id="resultwindow" class="WKSS">                                    \
-    <button id="ReviewresultsCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
-    <h1>Review Results</h1>\
-    <h2>All</h2>\
-    <div id="stats-a"></div>\
-    </div>';
-    var handleEditClick = function () {
-        //get handle for 'select' area
-        var select = document.getElementById("editWindow");
-
-        //get the index for the currently selected item
-        var index = select.selectedIndex; //select.options[select.selectedIndex].value is not required, option values are set to index
+var checkAdd = function(add) {
+    //take a JSON object (parsed from import window) and check with stored items for any duplicates
+    // Returns true if each item in 'add' array is valid and
+    //at least one of them already exists in storage
+    var i = add.length;
+    if(localGet('User-Vocab')) {
         var vocabList = getVocList();
-        vocabList = vocabList.reverse();
-        document.getElementById("editItem").value = JSON.stringify(vocabList[index]);
-        document.getElementById("editItem").name = index; //using name to save the index
-        $("#editStatus").text('Loaded item to edit');
-    };
-        info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+        while(i--){
+            if (isItemValid(add[i]) &&
+                checkForDuplicates(vocabList,add[i]))
+                return true;
+        }
+    }
+    return false;
+};
 
-    var handleEditSave = function () {
-        if ($("#editItem").val().length !== 0) {
-            //-- be aware
-            //deleting one item may cause mismatch if i is property of item in list
-            try {
-                var index = document.getElementById("editItem").name;
-                var item = JSON.parse(document.getElementById("editItem").value.toLowerCase());
-                var m = item.meaning.length;
-                while(m--){
-                    if (item.meaning[m] === ""){
-                        delete item.meaning[m];
+
+var isItemValid = function(add) {
+    //validates an object representing vocab
+    return (!isEmpty(add.kanji) && //kanji property exists
+            !isEmpty(add.meaning) && //meaning property exists
+            !isEmpty(add.reading)&& //reading property exists
+            Object.prototype.toString.call(add.meaning) === '[object Array]'&&//meaning is an array
+            Object.prototype.toString.call(add.reading) === '[object Array]');//reading is an array
+};
+
+
+
+//*****Ethan's Functions*****
+var handleReadyStateFour = function(xhrk, requestedItem){
+
+    var localkanjiList = [];
+    log("readystate: "+ xhrk.readyState);
+    var resp = JSON.parse(xhrk.responseText);
+    log("about to loop through requested information");
+    var i;
+    if (resp.requested_information)
+        i=resp.requested_information.length||0;
+    if (requestedItem === "kanji"){
+        while(i--){
+            //push response onto kanjilist variable
+            if (resp.requested_information[i].user_specific !== null){
+                localkanjiList.push({"character": resp.requested_information[i].character,
+                                     "srs": resp.requested_information[i].user_specific.srs,
+                                     "reading": resp.requested_information[i][resp.requested_information[i].important_reading].split(",")[0],
+                                     "meaning": resp.requested_information[i].meaning.split(",")[0]
+                                    });
+            }else{
+                localkanjiList.push({"character": resp.requested_information[i].character,
+                                     "srs": "unreached"});
+            }
+        }
+    }else if(requestedItem === "vocabulary"){
+        while(i--){
+            //push response onto kanjilist variable
+            if (resp.requested_information[i].user_specific !== null||true){
+                //build vocablist
+                localkanjiList.push({"kanji": resp.requested_information[i].character,
+                                     "reading": resp.requested_information[i].kana.split(","),
+                                     "meaning": resp.requested_information[i].meaning.split(",")});
+            }
+        }
+    }
+    //return kanjiList
+    //  log("Server responded with new kanjiList: \n"+JSON.stringify(kanjiList));
+    return localkanjiList;
+
+};
+
+var dummyResponse = function () {
+    var kanjiList = [];
+    log("creating dummy response");
+    kanjiList.push({"character": "猫", "srs": "noServerResp"});
+    var SRS = "apprentice"; //prompt("enter SRS for 子", "guru");
+    kanjiList.push({"character": "子", "srs": SRS});
+    kanjiList.push({"character": "品", "srs": "guru"});
+    kanjiList.push({"character": "供", "srs": "guru"});
+    kanjiList.push({"character": "本", "srs": "guru"});
+    kanjiList.push({"character": "聞", "srs": "apprentice"});
+    kanjiList.push({"character": "人", "srs": "enlightened"});
+    kanjiList.push({"character": "楽", "srs": "burned"});
+    kanjiList.push({"character": "相", "srs": "guru"});
+    kanjiList.push({"character": "卒", "srs": "noMatchWK"});
+    kanjiList.push({"character": "無", "srs": "noMatchGuppy"});
+
+    log("Server responded with dummy kanjiList: \n"+JSON.stringify(kanjiList));
+
+    localSet('User-KanjiList', kanjiList);
+
+    //update locks in localStorage
+    refreshLocks();
+
+
+};
+info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+
+var getServerResp = function(APIkey, requestedItem){
+    info(APIkey);
+    requestedItem = requestedItem ? requestedItem : 'kanji';
+
+    //functions:
+    //    refreshLocks()
+    //    generateReviewList()
+
+    if (APIkey !== "test"){
+        var levels = (requestedItem ==="kanji")? "/1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50":
+        "/1,2,3,4,5,6,7,8,9,10";
+        var xhrk = createCORSRequest("get", "https://www.wanikani.com/api/user/" + APIkey + "/" + requestedItem + levels);
+
+
+        if (!isEmpty(xhrk)){
+
+            xhrk.onreadystatechange = function() {
+                if (xhrk.readyState == 4){
+
+                    var kanjiList = handleReadyStateFour(xhrk,requestedItem);
+
+                    if (requestedItem === 'kanji'){
+                        localSet('User-KanjiList', kanjiList);
+                        log("kanjiList from server", kanjiList);
+                        //update locks in localStorage
+                        //pass kanjilist into this function
+                        //(don't shift things through storage unecessarily)
+                        refreshLocks();
+                    }else{
+                        var v = kanjiList.length;
+                        log(v + " items found, attempting to import");
+                        while (v--){
+                            setVocItem(kanjiList[v]);
+                        }
                     }
+                    //------
                 }
-                var fullList = getFullList().reverse();
+            };
 
+            xhrk.send();
+            log("below");
+        }
+    } else {
+        //dummy server response for testing.
+        setTimeout(dummyResponse, 10000);
+    }
+};
 
-                if (isItemValid(item) &&//item is valid
-                    !(checkForDuplicates(fullList,item) && //kanji (if changed) is not already in the list
-                      fullList[index].kanji !== item.kanji)) {//unless it is the item being edited
+var getComponents = function(kanji){
+    log("getComponents(kanji)");
+    //functions:
+    //    none
 
+    //takes in a string and returns an array containing only the kanji characters in the string.
+    var components = [];
 
-                    var srslist = getSrsList().reverse();
-                    //get srs components of item(list)
+    for (var c = 0; c < kanji.length; c++){
+        if(/^[\u4e00-\u9faf]+$/.test(kanji[c])) {
+            components.push(kanji[c]);
+        }
+    }
+    return components;
+};
 
-                    fullList[index] = item;//does not have srs stuff, re-add it now
+var refreshLocks = function(){
+    //functions:
+    //    setLocks(srsitem)
 
-                    log(fullList[index]);
-                    log(srslist[index]);
-                    fullList[index].date = srslist[index].date;
-                    fullList[index].level = srslist[index].level;
-                    fullList[index].locked = srslist[index].locked;
-                    fullList[index].manualLock = srslist[index].manualLock;
+    //log("refreshLocks()");
+    if (localGet('User-Vocab')) {
 
-                    fullList = fullList.reverse(); //reset order of array
+        var vocList = getSrsList();
+        var i = vocList.length;
+        var srsList2 = JSON.parse(localGet('User-Vocab'));
+        console.groupCollapsed("Setting Locks");
+        while(i--){
+            log("vocList[i] = setLocks(vocList[i]);");
+            vocList[i] = setLocks(vocList[i]);
+            log("setSrsItem(srsList[i]);");
+            //Pull out list (whole thing)
 
-                    localSet('User-Vocab', fullList);
+            srsList2 = setSrsItem(vocList[i],srsList2);
 
-                    generateEditOptions();
-                    $("#editStatus").html('Saved changes!');
-                    document.getElementById("editItem").value = "";
-                    document.getElementById("editItem").name = "";
+        }
+        console.groupEnd();
+        localSet('User-Vocab', srsList2);
+        //      log("Setting new locks: "+JSON.stringify(srsList));
+    }else{
+        log("no srs storage found");
+    }
+};
 
+var getCompKanji = function(item, kanjiList){
+    if (!kanjiList){
+        kanjiList = [];
+    }
+    log("getCompKanji(item, kanjiList)");
+
+    var compSRS = [];
+    var kanjiReady = false; //indicates if the kanjiList has been populated
+    var userGuppy = false; //indicates if kanjiList has less than 100 items
+    var kanjiObj = {};
+
+    //has the server responded yet
+    if (kanjiList.length > 0){
+        log("kanjiList is > 0");
+        kanjiReady = true;
+
+        //create lookup object
+        for (var k=0;k<kanjiList.length;k++){
+            kanjiObj[kanjiList[k].character] = kanjiList[k];
+        }
+
+        //is there less than 100 kanji in the response
+        if (kanjiList.length < 100){
+            log("kanjiList is < 100");
+            userGuppy = true;
+        }
+    }
+
+    var components = item.components;
+    //for each kanji character component
+    //    this is the outer loop since there will be far less of them than kanjiList
+    for(var i = 0; i < components.length; i++){
+
+        var matched = false;
+        //for each kanji returned by the server
+        // for(var j=0; j<kanjiList.length; j++){
+
+        //if the kanji returned by the server matches the character in the item
+        if (typeof kanjiObj[components[i]] !== 'undefined'){
+            //      if (kanjiList[j].character == components[i]){
+            compSRS[i] = {"kanji": components[i], "srs": kanjiObj[components[i]].srs};
+            matched = true;
+
+            // break; //kanji found: 'i' is its position in item components; 'j' is its postion in the 'kanjiList' server response
+        }
+        //}
+
+        if (matched === false){ // character got all the way through kanjiList without a match.
+            if (kanjiReady){ //was there a server response?
+                if (userGuppy){ //is the user a guppy (kanji probably matches a turtles response)
+                    log("matched=false, kanjiList.length: "+kanjiList.length);
+                    compSRS[i] = {"kanji": components[i], "srs": "noMatchGuppy"};
+                }else{ //user is a turtle, kanji must not have been added to WK (yet)
+                    log("matched=false, kanjiList.length: "+kanjiList.length);
+                    compSRS[i] = {"kanji": components[i], "srs": "noMatchWK"};
+                }
+            }else{
+                log("matched=false, kanjiReady=false, noServerResp");
+                compSRS[i] = {"kanji": components[i], "srs": "noServerResp"};
+            }
+        }
+    }
+    return compSRS; // compSRS is an array of the kanji with SRS values for each kanji component.
+    // eg. 折り紙:
+    // compSRS = [{"kanji": "折", "srs": "guru"}, {"kanji": "紙", "srs": "apprentice"}]
+};
+
+var createCORSRequest = function(method, url){
+    var xhr = new XMLHttpRequest();
+    if ("withCredentials" in xhr){
+        xhr.open(method, url, true);
+    } else if (typeof XDomainRequest !== "undefined"){
+        xhr = new XDomainRequest();
+        xhr.open(method, url);
+    } else {
+        xhr = null;
+    }
+    return xhr;
+};
+
+var createCSV = function(JSONstring){
+    var JSONobject = (typeof JSONstring === 'string') ? JSON.parse(JSONstring) : JSONstring;
+    var key;
+    var CSVarray = [];
+    var header = [];
+    var id = JSONobject.length;
+    if (id){//object not empty
+        for (key in JSONobject[0]){
+            if (JSONobject[0].hasOwnProperty(key)){
+                header.push(key);
+            }
+        }
+    }
+    CSVarray.push(header.join(','));
+
+    while(id--){
+        var line = [];
+        var h = header.length;
+        while(h--){// only do keys in header, in the header's order. //JSONobject[id]){
+            key = header[h];
+            if(JSONobject[id][key] !== undefined){
+                if (Array.isArray(JSONobject[id][key])){
+                    //parse array here
+                    line.push(JSONobject[id][key].join("\t"));
                 }else{
-                    $("#editStatus").text('Invalid item or duplicate!');
-                    alert(isItemValid(item).toString() +" && ！("+ checkForDuplicates(fullList,item).toString()+" && !("+fullList[index].kanji+" !== "+item.kanji+")");
-
+                    line.push(JSONobject[id][key]);
                 }
             }
-            catch (e) {
-                $("#editStatus").text(e);
+        }line = line.reverse();
+        CSVarray.push(line.join(','));
+    }
+    var CSVstring = CSVarray.join("\r\n");
+
+    return encodeURI("data:text/csv;charset=utf-8," + CSVstring);
+};
+
+var handleResetLevelsClick = function () {
+    //var srslist = getSrsList();
+    var srsList = JSON.parse(localGet('User-Vocab'))||[];
+
+    if (srsList) {
+        var i = srsList.length;
+        while(i--){
+            srsList[i].level = 0;
+            log("srsList[i].i before: "+srsList[i].i);
+            srsList[i].i=i;
+            log("srsList[i].i after: "+srsList[i].i);
+            var srsList2 = localGet('User-Vocab')||[];
+
+            srsList2 = setSrsItem(srsList[i],srsList2);
+            localSet('User-Vocab', srsList2);
+
+        }
+    }
+};
+
+//html strings
+var editWindowHtml = "                                                          \
+<div id=\"edit\" class=\"WKSS\">                                               \
+<form id=\"editForm\">                                                                    \
+<button id=\"EditCloseBtn\" class=\"wkss-close\" type=\"button\"><i class=\"icon-remove\"></i></button>\
+<h1>Edit your Vocab</h1>                                                \
+<select id=\"editWindow\" size=\"8\"></select>\
+<input type=\"text\" id=\"editItem\" name=\"\" size=\"40\" placeholder=\"Select vocab, click edit, change and save!\">\
+\
+<p id=\"editStatus\">Ready to edit..</p>\
+<button id=\"EditEditBtn\" type=\"button\">Edit</button>\
+<button id=\"EditSaveBtn\" type=\"button\">Save</button>         \
+<button id=\"EditDeleteBtn\" type=\"button\" title=\"Delete selected item\">Delete</button>         \
+<button id=\"EditDeleteAllBtn\" type=\"button\" title=\"本当にやるの？\">Delete All</button>   \
+<button id=\"ResetLevelsBtn\" type=\"button\">Reset levels</button>         \
+</form>                                                                   \
+</div>";
+var exportWindowHtml = '                                                          \
+<div id="export" class="WKSS">                                               \
+<form id="exportForm">                                                                    \
+<button id="ExportCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
+<h1>Export Items</h1>                                                \
+<textarea cols="50" rows="18" id="exportArea" placeholder="Export your stuff! Sharing is caring ;)"></textarea>                           \
+\
+<p id="exportStatus">Ready to export..</p>                                        \
+<button id="ExportItemsBtn" type="button">Export Items</button>\
+<button id="ExportSelectAllBtn" type="button">Select All</button>\
+<button id="ExportCsvBtn" type="button">Export CSV</button>\
+</form>                                                                   \
+</div>';
+var importWindowHtml = '                                                          \
+<div id="import" class="WKSS">                                               \
+<form id="importForm">                                                                    \
+<button id="ImportCloseBtn" class="wkss-close" type="reset"><i class="icon-remove"></i></button>\
+<h1>Import Items</h1>\
+<textarea cols="50" rows="18" id="importArea" placeholder="Paste your stuff and hit the import button! Use with caution!"></textarea>                     \
+\
+<p id="importStatus">Ready to import..</p>                                        \
+<label class="button" id="ImportItemsBtn" style="display:inline;">Import Items</label>\
+<label id="ImportCsvBtn" class="button" style="display:inline;cursor: pointer;">Import CSV         \
+<input type="file" id="upload" accept=".csv,.tsv" style="height:0px;width:0px;background:red;opacity:0;filter:opacity(1);" />\
+</label>\
+<label class="button" id="ImportWKBtn" style="display:inline;"><i class="icon-download-alt"></i> WK</label>\
+</form>                                                                   \
+</div>';
+var reviewWindowHtml = '                                                          \
+<div id="selfstudy" class="WKSS">\
+<button id="SelfstudyCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
+<h1>Review<span id="RevNum"></span></h1>\
+<div id="wkss-kanji">\
+<span id="rev-kanji"></span>\
+</div><div id="wkss-type">\
+<span id="rev-type"></span><br />\
+</div><div id="wkss-solution">\
+<span id="rev-solution"></span>\
+</div><div id="wkss-input">\
+<input type="text" id="rev-input" size="40" placeholder="">\
+</div><span id="rev-index" style="display: block;"></span>\
+\
+<form id="audio-form">\
+<label id="AudioButton" class="button">Play audio</label>\
+<label id="WrapUpBtn"   class="button">Wrap Up</label>\
+</form>\
+<div id="rev-audio" style="display:none;"></div>\
+</div>';
+var resultWindowHtml = '                                                          \
+<div id="resultwindow" class="WKSS">                                    \
+<button id="ReviewresultsCloseBtn" class="wkss-close" type="button"><i class="icon-remove"></i></button>\
+<h1>Review Results</h1>\
+<h2>All</h2>\
+<div id="stats-a"></div>\
+</div>';
+var handleEditClick = function () {
+    //get handle for 'select' area
+    var select = document.getElementById("editWindow");
+
+    //get the index for the currently selected item
+    var index = select.selectedIndex; //select.options[select.selectedIndex].value is not required, option values are set to index
+    var vocabList = getVocList();
+    vocabList = vocabList.reverse();
+    document.getElementById("editItem").value = JSON.stringify(vocabList[index]);
+    document.getElementById("editItem").name = index; //using name to save the index
+    $("#editStatus").text('Loaded item to edit');
+};
+info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+
+var handleEditSave = function () {
+    if ($("#editItem").val().length !== 0) {
+        //-- be aware
+        //deleting one item may cause mismatch if i is property of item in list
+        try {
+            var index = document.getElementById("editItem").name;
+            var item = JSON.parse(document.getElementById("editItem").value.toLowerCase());
+            var m = item.meaning.length;
+            while(m--){
+                if (item.meaning[m] === ""){
+                    delete item.meaning[m];
+                }
+            }
+            var fullList = getFullList().reverse();
+
+
+            if (isItemValid(item) &&//item is valid
+                !(checkForDuplicates(fullList,item) && //kanji (if changed) is not already in the list
+                  fullList[index].kanji !== item.kanji)) {//unless it is the item being edited
+
+
+                var srslist = getSrsList().reverse();
+                //get srs components of item(list)
+
+                fullList[index] = item;//does not have srs stuff, re-add it now
+
+                log(fullList[index]);
+                log(srslist[index]);
+                fullList[index].date = srslist[index].date;
+                fullList[index].level = srslist[index].level;
+                fullList[index].locked = srslist[index].locked;
+                fullList[index].manualLock = srslist[index].manualLock;
+
+                fullList = fullList.reverse(); //reset order of array
+
+                localSet('User-Vocab', fullList);
+
+                generateEditOptions();
+                $("#editStatus").html('Saved changes!');
+                document.getElementById("editItem").value = "";
+                document.getElementById("editItem").name = "";
+
+            }else{
+                $("#editStatus").text('Invalid item or duplicate!');
+                alert(isItemValid(item).toString() +" && ！("+ checkForDuplicates(fullList,item).toString()+" && !("+fullList[index].kanji+" !== "+item.kanji+")");
+
             }
         }
-    };
-    var handleEditDelete = function () {
-        //select options element window
-        var select = document.getElementById("editWindow");
-
-        //index of selected item
-        var item = select.options[select.selectedIndex].value;
-
-        //fetch JSON strings from storage and convert them into Javascript literals
-        var vocabList = getFullList();
-
-        //starting at selected index, remove 1 entry (the selected index).
-        if (item > -1) {
-            if (vocabList !== null){
-                vocabList.splice(item, 1);
-            }
+        catch (e) {
+            $("#editStatus").text(e);
         }
+    }
+};
+var handleEditDelete = function () {
+    //select options element window
+    var select = document.getElementById("editWindow");
 
-        //yuck
-        if (vocabList.length !== 0) {
-            localSet('User-Vocab', vocabList);
+    //index of selected item
+    var item = select.options[select.selectedIndex].value;
+
+    //fetch JSON strings from storage and convert them into Javascript literals
+    var vocabList = getFullList();
+
+    //starting at selected index, remove 1 entry (the selected index).
+    if (item > -1) {
+        if (vocabList !== null){
+            vocabList.splice(item, 1);
         }
-        else {
-            localStorage.removeItem('User-Vocab');
-        }
+    }
+
+    //yuck
+    if (vocabList.length !== 0) {
+        localSet('User-Vocab', vocabList);
+    }
+    else {
+        localStorage.removeItem('User-Vocab');
+    }
+
+    updateEditGUI();
+
+    $("#editStatus").text('Item deleted!');
+};
+var handleEditDeleteAll = function () {
+    var deleteAll = confirm("Are you sure you want to delete all entries?");
+    if (deleteAll) {
+
+        //drop local storage
+        localStorage.removeItem('User-Vocab');
+
 
         updateEditGUI();
 
-        $("#editStatus").text('Item deleted!');
-    };
-    var handleEditDeleteAll = function () {
-        var deleteAll = confirm("Are you sure you want to delete all entries?");
-        if (deleteAll) {
-
-            //drop local storage
-            localStorage.removeItem('User-Vocab');
-
-
-            updateEditGUI();
-
-            $("#editStatus").text('All items deleted!');
-        }
-    };
-    var handleEditClose = function () {
-        $("#edit").hide();
-        $("#editForm")[0].reset();
-        $("#editStatus").text('Ready to edit..');
-    };
-    var handleExportClick = function () {
-        if (localGet('User-Vocab')) {
-            $("#exportForm")[0].reset();
-            var vocabList = getVocList();
-            $("#exportArea").text(JSON.stringify(vocabList));
-            $("#exportStatus").text("Copy this text and share it with others!");
-        }
-        else {
-            $("#exportStatus").text("Nothing to export yet :(");
-        }
-    };
-    var handleExportSelectAll = function () {
-        if ($("#exportArea").val().length !== 0) {
-            select_all("exportArea");
-            $("#exportStatus").text("Don't forget to CTRL + C!");
-        }
-    };
-    var handleExportCsv = function () {
-        var vocabList = getFullList();
-        var CsvFile = createCSV(vocabList);
-        window.open(CsvFile);
-    };
-    var handleExportClose = function () {
-        $("#export").hide();
+        $("#editStatus").text('All items deleted!');
+    }
+};
+var handleEditClose = function () {
+    $("#edit").hide();
+    $("#editForm")[0].reset();
+    $("#editStatus").text('Ready to edit..');
+};
+var handleExportClick = function () {
+    if (localGet('User-Vocab')) {
         $("#exportForm")[0].reset();
-        $("#exportArea").text("");
-        $("#exportStatus").text('Ready to export..');
-    };
-    var handleImportWK = function(){
-        getServerResp(APIkey,"vocabulary");
-        log("maybe?");
-    };
-    var handleImportClick = function () {
-        if ($("#importArea").val().length !== 0) {
-            try {
-                var add = JSON.parse($("#importArea").val().toLowerCase());
-                alert(JSON.stringify(add));
-                if (checkAdd(add)) {
-                    $("#importStatus").text("No valid input (duplicates?)!");
-                    return;
-                }
-
-                var newlist;
-                var srslist = [];
-                if (localGet('User-Vocab')) {
-                    var vocabList = getVocList();
-                    srslist = getSrsList();
-                    newlist = vocabList.concat(add);
-                }
-                else {
-                    newlist = add;
-
-
-                }
-                var i = add.length;
-                while(i--){
-                    setVocItem(add[i]);
-                }
-
-                $("#importStatus").text("Import successful!");
-
-                $("#importForm")[0].reset();
-                $("#importArea").text("");
-
-            }
-            catch (e) {
-                $("#importStatus").text("Parsing Error!");
-                log(e);
+        var vocabList = getVocList();
+        $("#exportArea").text(JSON.stringify(vocabList));
+        $("#exportStatus").text("Copy this text and share it with others!");
+    }
+    else {
+        $("#exportStatus").text("Nothing to export yet :(");
+    }
+};
+var handleExportSelectAll = function () {
+    if ($("#exportArea").val().length !== 0) {
+        select_all("exportArea");
+        $("#exportStatus").text("Don't forget to CTRL + C!");
+    }
+};
+var handleExportCsv = function () {
+    var vocabList = getFullList();
+    var CsvFile = createCSV(vocabList);
+    window.open(CsvFile);
+};
+var handleImportWK = function(){
+    getServerResp(APIkey,"vocabulary");
+    log("maybe?");
+};
+var handleImportClick = function () {
+    if ($("#importArea").val().length !== 0) {
+        try {
+            var add = JSON.parse($("#importArea").val().toLowerCase());
+            alert(JSON.stringify(add));
+            if (checkAdd(add)) {
+                $("#importStatus").text("No valid input (duplicates?)!");
+                return;
             }
 
-        }
-        else {
-            $("#importStatus").text("Nothing to import :( Please paste your stuff first");
-        }
-    };
-    var handleImportClose = function () {
-        $("#import").hide();
-        $("#importForm")[0].reset();
-        $("#importArea").text("");
-        $("#importStatus").text('Ready to import..');
-    };
-    var handleSelfstudyClose = function () {
-        $("#selfstudy").hide();
-        $("#rev-input").val("");
-        reviewActive = false;
-    };
-    var handleWrapUp = function() {
-        var sessionList = sessionGet('User-Review')||[];
-        var statsList = sessionGet('User-Stats')||[];
-        //if an index in sessionList matches one in statsList, don't delete
-        var sessionI = sessionList.length;
-        var item = sessionGet('WKSS-item')||[];
-        var arr2 = [];
-        //for every item in sessionList, look for index in statsList,
-        //if not there (-1) delete item from sessionList
-        while (sessionI--){
-            var index = findIndex(statsList,sessionList[sessionI]);
-            if ((Math.sign(1/index) !== -1)||(sessionList[sessionI].index == item.index)){
-
-                arr2.push(sessionList[sessionI]);
-            }
-        }
-
-
-        log(arr2);
-        sessionSet('User-Review', JSON.stringify(arr2));
-    };
-        info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
-
-    var handleAudioClick = function () {
-        openInNewTab(document.getElementById('rev-audio').innerHTML);
-    };
-    var handleResultClose = function () {
-        $("#resultwindow").hide();
-        document.getElementById("stats-a").innerHTML = "";
-    };
-    var handleAnswerSubmit = function (e) {
-        //functions:
-        //  inputCorrect()
-
-        //check if key press was 'enter' (keyCode 13) on the way up
-        //and keystate true (answer being submitted)
-        //and cursor is focused in reviewfield
-        if (e.keyCode == 13 && submit === true) {
-            var input = $("#rev-input").val();
-            var reviewList = sessionGet('User-Review')||[];
-            var rnd = sessionStorage.getItem('WKSS-rnd')||0;
-
-            var item = sessionGet('WKSS-item');
-
-            //-- starting implementation of forgiveness protocol
-
-            item.forgive = [];//"ゆるす"]; //placeholder (許す to forgive)
-
-
-            if (item === null){
-                alert("Item Null??");
-                reviewList.splice(rnd, 1);
-            }else{
-                //handle grading and storing solution
-
-                //check for input, do nothing if none
-                if(input.length === 0){
-                    return;
-                }
-
-                //disable input after submission
-                //document.getElementById('rev-input').disabled = true;
-
-
-                //was the input correct?
-                var correct = inputCorrect();
-
-                //was the input forgiven?
-                var forgiven = (item.forgive.indexOf(input) !== -1);
-
-                if (correct) {
-                    //highlight in (default) green
-                    $("#rev-input").addClass("correct");
-                    //show answer
-                    $("#rev-solution").addClass("info");
-                } else if (forgiven){
-                    $("#rev-input").addClass("caution");
-                } else {
-                    //highight in red
-                    $("#rev-input").addClass("error");
-                    //show answer
-                    $("#rev-solution").addClass("info");
-                }
-
-                //remove from sessionList if correct
-                if (correct) {
-                    log("correct answer");
-                    if (reviewList !== null){
-                        var oldlen = reviewList.length;
-
-                        reviewList.splice(rnd, 1);
-                        log("sessionList.length: "+ oldlen +" -> "+reviewList.length);
-
-                        //replace shorter (by one) sessionList to session
-                        if (reviewList.length !== 0) {
-                            log("sessionList.length: "+ reviewList.length);
-                            sessionSet('User-Review', JSON.stringify(reviewList));
-
-                        } else {
-                            //reveiw over, delete sessionlist from session
-                            sessionStorage.removeItem('User-Review');
-                        }
-                    }else{
-                        console.error("Error: no review session found");
-                    }
-                }else{
-                    //   if(forgiven){
-                    //     log(input +" has been forgiven. "+item.type);
-                    //   return;
-                    //}
-                    log("wrong answer");
-                }
-
-                item = markAnswer(item);
-
-                sessionSet(item.index, item);
-
-
-                var list = JSON.parse(sessionStorage.getItem("User-Stats"))||[];
-                var found = false;
-
-                if (list){
-                    var i = list.length;
-                    while(i--){
-                        if (list[i].index == item.index) {
-                            list[i] = item;                             //replace item if it exists
-                            found = true;
-                            break;
-                        }
-                    }
-                    if(!found){
-                        list = saveToSortedList(list,item);
-                    }
-
-                } else {
-                    list = [item];
-                }
-
-                sessionSet("User-Stats", JSON.stringify(list));
-                //playAudio();
-
-                //answer submitted, next 'enter' proceeds with script
-                submit = false;
-            }//null garbage collection
-        }
-        else if (e.keyCode == 13 && submit === false) {
-            log("keystat = " + submit);
-
-            //there are still more reviews in session?
-            if (sessionStorage.getItem('User-Review')) {
-                // log("found a 'User-Review': " + sessionStorage.getItem('User-Review'));
-
-                setTimeout(function () {
-                    log("refreshing reviewList from storage");
-                    var reviewList = JSON.parse(sessionStorage.getItem('User-Review'));
-
-                    //cue up first remaining review
-                    nextReview(reviewList);
-                    log("checking for empty reviewList");
-                    if (reviewList.length === 0){
-
-                        log("session over. reviewList: "+JSON.stringify(reviewList));
-                        sessionStorage.removeItem("User-Review");
-                    }
-
-                    //         document.getElementById('rev-input').disabled = true;
-                    $("#rev-solution").removeClass("info");
-                    $("#selfstudy").hide().fadeIn('fast');
-
-                }, 1);
+            var newlist;
+            var srslist = [];
+            if (localGet('User-Vocab')) {
+                var vocabList = getVocList();
+                srslist = getSrsList();
+                newlist = vocabList.concat(add);
             }
             else {
-                // no review stored in session, review is over
-                setTimeout(function () {
-
-                    $("#selfstudy").hide();
-                    //document.getElementById('rev-input').disabled = false;
-                    $("#rev-solution").removeClass("info");
-                    log("showResults");
-                    showResults();
-                    $("#resultwindow").show();
-                    log("showResults completed");
-
-                    //*/  //clear session
-                    sessionStorage.clear();
-                    reviewActive = false;
+                newlist = add;
 
 
-                }, 1);
             }
-            submit = true;
+            var i = add.length;
+            while(i--){
+                setVocItem(add[i]);
+            }
+
+            $("#importStatus").text("Import successful!");
+
+            $("#importForm")[0].reset();
+            $("#importArea").text("");
 
         }
-    };
+        catch (e) {
+            $("#importStatus").text("Parsing Error!");
+            log(e);
+        }
+
+    }
+    else {
+        $("#importStatus").text("Nothing to import :( Please paste your stuff first");
+    }
+};
+var handleWrapUp = function() {
+    var sessionList = sessionGet('User-Review')||[];
+    var statsList = sessionGet('User-Stats')||[];
+    //if an index in sessionList matches one in statsList, don't delete
+    var sessionI = sessionList.length;
+    var item = sessionGet('WKSS-item')||[];
+    var arr2 = [];
+    //for every item in sessionList, look for index in statsList,
+    //if not there (-1) delete item from sessionList
+    while (sessionI--){
+        var index = findIndex(statsList,sessionList[sessionI]);
+        if ((Math.sign(1/index) !== -1)||(sessionList[sessionI].index == item.index)){
+
+            arr2.push(sessionList[sessionI]);
+        }
+    }
 
 
-    var main = function(evt) {
-        console.log($);
-        var WK = window.WK || ("undefined" !== typeof $) && $.jStorage.get("WK");
-        console.log("WK is ", WK);
+    log(arr2);
+    sessionSet('User-Review', JSON.stringify(arr2));
+};
+info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+
+var handleAudioClick = function () {
+    openInNewTab(document.getElementById('rev-audio').innerHTML);
+};
+var handleAnswerSubmit = function (e) {
+    //functions:
+    //  inputCorrect()
+
+    //check if key press was 'enter' (keyCode 13) on the way up
+    //and keystate true (answer being submitted)
+    //and cursor is focused in reviewfield
+    if (e.keyCode == 13 && submit === true) {
+        var input = $("#rev-input").val();
+        var reviewList = sessionGet('User-Review')||[];
+        var rnd = sessionStorage.getItem('WKSS-rnd')||0;
+
+        var item = sessionGet('WKSS-item');
+
+        //-- starting implementation of forgiveness protocol
+
+        item.forgive = [];//"ゆるす"]; //placeholder (許す to forgive)
 
 
-        
-        var api = evt.target.api;
-        console.log("api ApiKey", api, APIkey);
-        /*//--
+        if (item === null){
+            alert("Item Null??");
+            reviewList.splice(rnd, 1);
+        }else{
+            //handle grading and storing solution
+
+            //check for input, do nothing if none
+            if(input.length === 0){
+                return;
+            }
+
+            //disable input after submission
+            //document.getElementById('rev-input').disabled = true;
+
+
+            //was the input correct?
+            var correct = inputCorrect();
+
+            //was the input forgiven?
+            var forgiven = (item.forgive.indexOf(input) !== -1);
+
+            if (correct) {
+                //highlight in (default) green
+                $("#rev-input").addClass("correct");
+                //show answer
+                $("#rev-solution").addClass("info");
+            } else if (forgiven){
+                $("#rev-input").addClass("caution");
+            } else {
+                //highight in red
+                $("#rev-input").addClass("error");
+                //show answer
+                $("#rev-solution").addClass("info");
+            }
+
+            //remove from sessionList if correct
+            if (correct) {
+                log("correct answer");
+                if (reviewList !== null){
+                    var oldlen = reviewList.length;
+
+                    reviewList.splice(rnd, 1);
+                    log("sessionList.length: "+ oldlen +" -> "+reviewList.length);
+
+                    //replace shorter (by one) sessionList to session
+                    if (reviewList.length !== 0) {
+                        log("sessionList.length: "+ reviewList.length);
+                        sessionSet('User-Review', JSON.stringify(reviewList));
+
+                    } else {
+                        //reveiw over, delete sessionlist from session
+                        sessionStorage.removeItem('User-Review');
+                    }
+                }else{
+                    console.error("Error: no review session found");
+                }
+            }else{
+                //   if(forgiven){
+                //     log(input +" has been forgiven. "+item.type);
+                //   return;
+                //}
+                log("wrong answer");
+            }
+
+            item = markAnswer(item);
+
+            sessionSet(item.index, item);
+
+
+            var list = JSON.parse(sessionStorage.getItem("User-Stats"))||[];
+            var found = false;
+
+            if (list){
+                var i = list.length;
+                while(i--){
+                    if (list[i].index == item.index) {
+                        list[i] = item;                             //replace item if it exists
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found){
+                    list = saveToSortedList(list,item);
+                }
+
+            } else {
+                list = [item];
+            }
+
+            sessionSet("User-Stats", JSON.stringify(list));
+            //playAudio();
+
+            //answer submitted, next 'enter' proceeds with script
+            submit = false;
+        }//null garbage collection
+    }
+    else if (e.keyCode == 13 && submit === false) {
+        log("keystat = " + submit);
+
+        //there are still more reviews in session?
+        if (sessionStorage.getItem('User-Review')) {
+            // log("found a 'User-Review': " + sessionStorage.getItem('User-Review'));
+
+            setTimeout(function () {
+                log("refreshing reviewList from storage");
+                var reviewList = JSON.parse(sessionStorage.getItem('User-Review'));
+
+                //cue up first remaining review
+                nextReview(reviewList);
+                log("checking for empty reviewList");
+                if (reviewList.length === 0){
+
+                    log("session over. reviewList: "+JSON.stringify(reviewList));
+                    sessionStorage.removeItem("User-Review");
+                }
+
+                //         document.getElementById('rev-input').disabled = true;
+                $("#rev-solution").removeClass("info");
+                $("#selfstudy").hide().fadeIn('fast');
+
+            }, 1);
+        }
+        else {
+            // no review stored in session, review is over
+            setTimeout(function () {
+
+                $("#selfstudy").hide();
+                //document.getElementById('rev-input').disabled = false;
+                $("#rev-solution").removeClass("info");
+                log("showResults");
+                showResults();
+                $("#resultwindow").show();
+                log("showResults completed");
+
+                //*/  //clear session
+                sessionStorage.clear();
+                reviewActive = false;
+
+
+            }, 1);
+        }
+        submit = true;
+
+    }
+};
+
+
+var main = function(evt) {
+    console.log($);
+    var WK = window.WK || ("undefined" !== typeof $) && $.jStorage.get("WK");
+    console.log("WK is ", WK);
+
+
+
+    var api = evt.target.api;
+    console.log("api ApiKey", api, o.APIkey);
+    /*//--
          *  JQuery fixes
          */
-        $("[placeholder]").focus(function () {
+    $("[placeholder]").focus(function () {
+        var input = $(this);
+        if (input.val() == input.attr("placeholder")) {
+            input.val("''");
+            input.removeClass("'placeholder'");
+        }
+    }).blur(function () {
+        var input = $(this);
+        if (input.val() == "''" || input.val() == input.attr("placeholder")) {
+            input.addClass("placeholder");
+            input.val(input.attr("placeholder"));
+        }
+    }).blur();
+
+    $("[placeholder]").parents("form").submit(function () {
+        $(this).find("[placeholder]").each(function () {
             var input = $(this);
             if (input.val() == input.attr("placeholder")) {
-                input.val("''");
-                input.removeClass("'placeholder'");
+                input.val("");
             }
-        }).blur(function () {
-            var input = $(this);
-            if (input.val() == "''" || input.val() == input.attr("placeholder")) {
-                input.addClass("placeholder");
-                input.val(input.attr("placeholder"));
-            }
-        }).blur();
-
-        $("[placeholder]").parents("form").submit(function () {
-            $(this).find("[placeholder]").each(function () {
-                var input = $(this);
-                if (input.val() == input.attr("placeholder")) {
-                    input.val("");
-                }
-            });
         });
+    });
 
 
 
-        var APIkey = getSetApi(api);
 
-        //prepend required scripts
-        //    $("head").prepend("<script src='https://cdn.jsdelivr.net/jquery.mockjax/1.6.1/jquery.mockjax.js'></script>");
+    //prepend required scripts
+    //    $("head").prepend("<script src='https://cdn.jsdelivr.net/jquery.mockjax/1.6.1/jquery.mockjax.js'></script>");
 
-        $("head").prepend('<script src="https://rawgit.com/WaniKani/WanaKana/master/lib/wanakana.js" type="text/javascript"></script>');
+    $("head").prepend('<script src="https://rawgit.com/WaniKani/WanaKana/master/lib/wanakana.js" type="text/javascript"></script>');
 
 
-        if (!APIkey){
-            saveApiFromPage(); //--
-        }
-        convertStorage(); //--
-        if (o.asWK)
-            makeWkReviews();//--
+    convertStorage(); //--
+    if (o.asWK)
+        makeWkReviews();//--
 
-        info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
-        $("body").append(addWindow._elem._container);
-        $("#add").hide()
-        $("#AddItemBtn").click(addButton._onClick);
-        
-        $("body").append(editWindowHtml);
-        $("#edit").hide();
-        $("#ResetLevelsBtn").click(handleResetLevelsClick);
-        $("#EditEditBtn").click(handleEditClick);
-        $("#EditSaveBtn").click(handleEditSave);
-        $("#EditDeleteBtn").click(handleEditDelete);
-        $("#EditDeleteAllBtn").click(handleEditDeleteAll);
-        $("#EditCloseBtn").click(handleEditClose);
+    info("addwindow._elem._coontainer",addWindow._elem._container.firstChild);
+    $("body").append(settingsWindow._elem._container);
+    settingsWindow.close();
+    $("body").append(addWindow._elem._container);
+    $("#add").hide();
+    $("#AddItemBtn").click(addButton._onClick);
 
-        $("body").append(exportWindowHtml);
-        $("#export").hide();
-        $("#ExportItemsBtn").click(handleExportClick);
-        $("#ExportSelectAllBtn").click(handleExportSelectAll);
-        $("#ExportCsvBtn").click(handleExportCsv);
-        $("#ExportCloseBtn").click(handleExportClose);
+    $("body").append(editWindowHtml);
+    $("#edit").hide();
+    $("#ResetLevelsBtn").click(handleResetLevelsClick);
+    $("#EditEditBtn").click(handleEditClick);
+    $("#EditSaveBtn").click(handleEditSave);
+    $("#EditDeleteBtn").click(handleEditDelete);
+    $("#EditDeleteAllBtn").click(handleEditDeleteAll);
+    $("#EditCloseBtn").click(handleEditClose);
 
-        $("body").append(importWindowHtml);
-        $("#import").hide();
-        document.getElementById("upload") && document.getElementById("upload").addEventListener('change', fileUpload, false);
-        //    $("#ImportCsvBtn").click(function () {});
-        $("#ImportWKBtn").click(handleImportWK);
-        $("#ImportItemsBtn").click(handleImportClick);
-        $("#ImportCloseBtn").click(handleImportClose);
+    $("body").append(exportWindowHtml);
+    $("#export").hide();
+    $("#ExportItemsBtn").click(handleExportClick);
+    $("#ExportSelectAllBtn").click(handleExportSelectAll);
+    $("#ExportCsvBtn").click(handleExportCsv);
+    $("#ExportCloseBtn").click(handleExportClose);
 
-        $("body").append(reviewWindowHtml);
-        $("#selfstudy").hide();
-        $("#SelfstudyCloseBtn").click(handleSelfstudyClose);
-        $("#WrapUpBtn").click(handleWrapUp);
-        $("#AudioButton").click(handleAudioClick);
+    $("body").append(importWindowHtml);
+    $("#import").hide();
+    document.getElementById("upload") && document.getElementById("upload").addEventListener('change', fileUpload, false);
+    //    $("#ImportCsvBtn").click(function () {});
+    $("#ImportWKBtn").click(handleImportWK);
+    $("#ImportItemsBtn").click(handleImportClick);
+    $("#ImportCloseBtn").click(handleImportClose);
 
-        $("body").append(resultWindowHtml);
-        $("#resultwindow").hide();
-        $("#ReviewresultsCloseBtn").click(handleResultClose);
+    $("body").append(reviewWindowHtml);
+    $("#selfstudy").hide();
+    $("#SelfstudyCloseBtn").click(handleSelfstudyClose);
+    $("#WrapUpBtn").click(handleWrapUp);
+    $("#AudioButton").click(handleAudioClick);
 
-        $("#rev-input").keyup(handleAnswerSubmit);
-        //document.addEventListener("DOMContentLoaded",
-        //                        function() { hijackRequests(); });
-        // Check for file API support.
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-        } else {
-            alert('The File APIs are not fully supported in this browser.');
-        }
-        /*
+    $("body").append(resultWindowHtml);
+    $("#resultwindow").hide();
+    $("#ReviewresultsCloseBtn").click(handleResultClose);
+
+    $("#rev-input").keyup(handleAnswerSubmit);
+    //document.addEventListener("DOMContentLoaded",
+    //                        function() { hijackRequests(); });
+    // Check for file API support.
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+    } else {
+        alert('The File APIs are not fully supported in this browser.');
+    }
+    /*
          * Start the script
          */
-        if (o.usingHTTPS){
-            
-            if (!o.noNewStuff){  //Don't waste time if user is browsing site
-                getServerResp(APIkey);
-                info("Initialising WaniKani Self-Study Plus");
-                scriptInit();
-            }
-            else{
-                //need to add the button dummy!
-                scriptInit();
-            }
+    if (o.usingHTTPS){
 
-        }else{
-            warn("It appears that you are not using https protocol. Attempting to redirect to https now.");
-            window.location.href = window.location.href.replace(/^http/, "https");
+        if (!o.noNewStuff){  //Don't waste time if user is browsing site
+            getServerResp(o.APIkey);
+            info("Initialising WaniKani Self-Study Plus");
+            scriptInit();
+        }
+        else{
+            //need to add the button dummy!
+            scriptInit();
         }
 
-        localSet("WKSSdata", o.VersionData);
-
-    };
-
-    if (document.readyState === 'complete'){
-        console.info("About to initialise WKSS+");
-        main({target: window});
-    } else {
-        info("waiting for page to load");
-        window.addEventListener("load", main, false);
+    }else{
+        warn("It appears that you are not using https protocol. Attempting to redirect to https now.");
+        window.location.href = window.location.href.replace(/^http/, "https");
     }
+
+    localSet("WKSSdata", o.VersionData);
+
+};
+
+if (document.readyState === 'complete' || document.readyState === 'interactive'){
+    console.log("I think its interactive...", document.readyState);
+    main({target: window});
+} else {
+    document.addEventListener('readystatechange', function(){console.log(document.readyState);});
+
+    if (document.readyState !== "loading"){
+        console.log("loading script...");
+        console.log(document.readyState, $("body"));
+        main({target: window});
+
+    }
+
+    //        info("waiting for page to load");
+    //        window.addEventListener("load", main, false);
+}
 })();
