@@ -17,7 +17,7 @@
 // ==/UserScript==
 (function(){
     "use strict";
-
+try{
 
     /*
      *  This script is licensed under the Creative Commons License
@@ -279,6 +279,7 @@
             log("options", this.options);
             this._defaultTextString = options && options.text || "";
             this._textNode = document.createTextNode(this._defaultTextString);
+            this.setText(this._defaultTextString);
             this._childNodes = [];
         },
         setAttribute: function(attribute, dataString){
@@ -301,25 +302,29 @@
         },
         addTo: function(node){
             node instanceof o.Node && (node = node._container);
-            node.appendChild(this._container);
+            info("#");
+            //node.appendChild(this._container);
             return this;
         },
         addNode:function(node){
             node instanceof o.Node && (this._childNodes.push(node), node = node._container);
-            this._container.appendChild(node);
+            info("#");
+     //       this._container.appendChild(node);
             return this;
         },
         addNodes:function(){
             var node, textNode;
             for (var arg in arguments) if (arguments.hasOwnProperty(arg)){
                 node = arguments[arg] instanceof o.Node ? (this._childNodes.push(arguments[arg]),arguments[arg]._container) : arguments[arg];
-                this._container.appendChild(node);
+            info("#");
+       //         this._container.appendChild(node);
             }
             return this;
         },
-        resetText: function(){
+        reset: function(){
             this.setText(this._defaultTextString);
-            this._childNodes.forEach(function(n){n.resetText();});
+            this.removeClass("error");
+            this._childNodes.forEach(function(n){n.reset();});
             return this;
         },
         setId: function(idString){
@@ -334,6 +339,14 @@
             this._container.className = this._container.className? this._container.className + " " + classString : classString;
             return this;
         },
+        removeClass: function(classString){
+            var a = this._container.className.split(" ");
+            var i = a.indexOf(classString);
+            if(i >= 0){
+                a.splice(i, 1);
+                this._container.className = a.join(" ");
+            }
+        },
         addStyles: function(jsStylesObject){
             info("here", this, jsStylesObject);
             for (var st in jsStylesObject) if (jsStylesObject.hasOwnProperty(st)){
@@ -346,7 +359,8 @@
         },
         setText: function(textString){
             this._textNode.nodeValue = textString;
-            this._container.appendChild(this._textNode);
+            info("#");
+        //    this._container.appendChild(this._textNode);
             return this;
         }
     });
@@ -417,11 +431,10 @@
 
             this._height = options.windowHeight;
             this._width = options.windowWidth;
-            this._elem = new o.Node("div", {
-                text: options.text
-            })
+            this._elem = new o.Node("div")
                 .addStyles({height: options.windowHeight + "px", width: options.windowWidth + "px", marginLeft: -options.windowWidth/2 + "px"})
-                .setId(idString).addClass("WKSS");
+                .setId(idString)
+                .addClass("WKSS");
             this._elem.addNodes(
                 this.closeButton
             );
@@ -436,13 +449,17 @@
         addTo: function(elem){
             $(elem).append(this._elem._container);
         },
+        
+        reset: function(){
+            this._elem._childNodes.forEach(function(node){node.reset();});
+        },
 
         close: function(){
             info("hiding window", this);
             //hide the window
             $(this._elem._container).hide();
             //clear all forms
-            Array.prototype.forEach.call(this._elem._container.getElementsByTagName("form"), function(form){false&&form.reset();});
+            Array.prototype.forEach.call(this._elem._container.getElementsByTagName("form"), function(form){form.reset();});
             //reset status to default
             
     
@@ -487,7 +504,7 @@ log(settingsWindow);
                                                  new o.Node("input").setAttributes({type: "text", id:"addKanji", placeholder:"Enter 漢字, ひらがな or カタカナ"}),
                                                  new o.Node("input").setAttributes({type: "text", id:"addReading", title: "Leave empty to add vocabulary like する (to do)", placeholder:"Enter reading"}),
                                                  new o.Node("input").setAttributes({type: "text", id:"addMeaning", placeholder:"Enter meaning"}),
-                                                 new o.Node("p", {text: "Ready to add.."}).setAttributes({id: "addStatus"}).setText("Read.."),
+                                                 new o.Node("p", {text: "Ready to add.."}),
                                                  new o.Node("button").setAttributes({id:"AddItemBtn", type:"button"}).setText("Add new Item")
                                              )]
                                         });
@@ -568,7 +585,8 @@ log(settingsWindow);
             style.setAttribute('type', 'text/css');
             style.textContent = cssString;
             //insert DOM style into head
-            head.appendChild(style);
+    info("#");
+        //    head.appendChild(style);
         }
     };
 
@@ -1099,7 +1117,8 @@ log(settingsWindow);
                 opt.value = i;
                 opt.innerHTML = text;
                 options.push(opt);//for future use (sorting data etc)
-                select.appendChild(opt);//export item to option menu
+            info("#");
+           //     select.appendChild(opt);//export item to option menu
             }
         }
     };
@@ -1938,12 +1957,10 @@ var addUserVocabButton = function() {
 
     if (nav&&nav.length>2) {
 
-        var dropdownMenu = new o.Node("li");
-
-        dropdownMenu.addClass("dropdown custom").addNodes(
-            new o.Node("a").addClass("dropdown-toggle custom").setAttributes({"data-toggle": "dropdown", "href": "#", "onclick": "generateReviewList();"}).addNode(
+        var dropdownMenu = new o.Node("li").addClass("dropdown custom").addNodes(
+            new o.Node("a", {text: "Self-Study"}).addClass("dropdown-toggle custom").setAttributes({dataToggle: "dropdown", "href": "#", "onclick": "generateReviewList();"}).addNode(
                 new o.Node("span").setAttribute("lang", "ja").setText("自習")
-            ).setText("Self-Study").addNode(
+            ).addNode(
                 new o.Node("i").addClass("icon-chevron-down")
             ),
             new o.Node("ul").addClass("dropdown-menu").setId("WKSS_dropdown").addNodes(
@@ -1971,6 +1988,7 @@ var addUserVocabButton = function() {
     * Adds a <style> tag with properties for the extension, should get smaller as styles get baked into class definitions
     */
 var appendStyle = function(){
+    log("is it here?");
     new o.Node("style").addNodes(
         new o.CSS(".custom .dropdown-menu", {backgroundColor: '#DBA901 !important'}).getTextNode(),
         new o.CSS(".custom .dropdown-menu:after, .custom .dropdown-menu:before", {borderBottomColor: '#DBA901 !important'}).getTextNode(),
@@ -3131,13 +3149,17 @@ var main = function(evt) {
 
 };
 
-if (document.readyState === 'complete' || document.readyState === 'interactive'){
+
+
+//-- conflicts with wysihtml5 if loaded at interactive stage????
+
+if (document.readyState === 'complete'){// || document.readyState === 'interactive'){
     console.log("I think its interactive...", document.readyState);
     main({target: window});
 } else {
     document.addEventListener('readystatechange', function(){console.log(document.readyState);});
 
-    if (document.readyState !== "loading"){
+    if (document.readyState !== "loading" &&  document.readyState !== 'interactive'){
         console.log("loading script...");
         console.log(document.readyState, $("body"));
         main({target: window});
@@ -3147,4 +3169,8 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
     //        info("waiting for page to load");
     //        window.addEventListener("load", main, false);
 }
+}    catch(e){
+        e.stack ? error(e.stack, e) : error(e);
+    }
+
 })();
