@@ -1,0 +1,15 @@
+<NotepadPlus>
+    <Project name="WKSS+">
+        <Folder name="src">
+            <File name="apiutil.js" />
+            <File name="button.js" />
+            <File name="class.js" />
+            <File name="node.js" />
+            <File name="reviews.js" />
+            <File name="srs.js" />
+            <File name="util.js" />
+            <File name="window.js" />
+            <File name="wkss.js" />
+        </Folder>
+    </Project>
+</NotepadPlus>
